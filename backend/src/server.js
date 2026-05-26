@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 dotenv.config();
+const prisma = require('./prisma/prisma');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
@@ -20,6 +21,8 @@ const verifyRoutes = require(path.join(__dirname, 'controllers', 'auth', 'verify
 const { authMiddleware } = require(path.join(__dirname, 'middleware', 'auth'));
 
 const app = express();
+
+
 
 /* ================= MIDDLEWARE ================= */
 app.use(express.json({ limit: '5mb' }));
@@ -60,13 +63,16 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   ];
 
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn(`[CORS] Blocked request from unauthorized origin: ${origin}`);
-      callback(null, false);
+  origin: function (origin, callback) {
+    // Allow Postman / server-to-server / health checks
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
     }
+
+    console.warn(`[CORS BLOCKED] ${origin}`);
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -85,8 +91,6 @@ app.get('/health', async (req, res) => {
 });
 
 app.get('/debug-student', async (req, res) => {
-  const { PrismaClient } = require('@prisma/client');
-  const prisma = new PrismaClient();
   try {
     const student = await prisma.student.findFirst({
       where: { firstName: { contains: 'Shrasta' } },
@@ -95,24 +99,28 @@ app.get('/debug-student', async (req, res) => {
         Renamedclass: true
       }
     });
+
     let publish = null;
+
     if (student) {
       publish = await prisma.schoolexampublish.findFirst({
-        where: { schoolId: student.schoolId, examTerminal: '1st Term' }
+        where: {
+          schoolId: student.schoolId,
+          examTerminal: '1st Term'
+        }
       });
     }
+
     res.json({ student, publish });
+
   } catch (e) {
     res.status(500).json({ error: e.message });
-  } finally {
-    await prisma.$disconnect();
   }
 });
 
 /* ================= API STATUS PAGE ================= */
 app.get('/', async (req, res) => {
-  const { PrismaClient } = require('@prisma/client');
-  const prisma = new PrismaClient();
+  
   let dbStatus = 'connected';
   let dbColor = '#22c55e';
   try {
@@ -120,9 +128,7 @@ app.get('/', async (req, res) => {
   } catch {
     dbStatus = 'disconnected';
     dbColor = '#ef4444';
-  } finally {
-    await prisma.$disconnect();
-  }
+  } 
 
   const uptime = process.uptime();
   const h = Math.floor(uptime / 3600);
