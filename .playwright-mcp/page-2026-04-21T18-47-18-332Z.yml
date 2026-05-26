@@ -1,0 +1,185 @@
+- generic [ref=e126]:
+  - navigation [ref=e127]:
+    - generic [ref=e129]:
+      - img [ref=e131]
+      - generic [ref=e134]:
+        - generic [ref=e135]: Myschoolspace
+        - generic [ref=e136]: student portal
+    - generic [ref=e137]:
+      - button "Overview" [ref=e138]
+      - button "Materials" [ref=e139]
+      - button "Assignments" [ref=e140]
+      - button "Ratings" [ref=e141]
+      - button "Results" [ref=e142]
+    - generic [ref=e143]:
+      - generic [ref=e144]:
+        - generic [ref=e145]: ID
+        - generic [ref=e146]: FDED1D
+      - generic [ref=e147]:
+        - button [ref=e149]:
+          - img [ref=e150]
+        - button "Logout" [ref=e153]:
+          - img [ref=e154]
+  - main [ref=e157]:
+    - generic [ref=e158]:
+      - generic [ref=e159]:
+        - generic [ref=e161]:
+          - paragraph [ref=e162]: Student Portal
+          - heading "Welcome back, Arjun!" [level=2] [ref=e163]
+          - generic [ref=e165]: Attendance N/A
+        - generic [ref=e167]:
+          - generic [ref=e168]:
+            - img [ref=e170]
+            - generic [ref=e172]:
+              - paragraph [ref=e173]: Assignments
+              - paragraph [ref=e174]: "8"
+              - paragraph [ref=e175]: Pending
+          - generic [ref=e176]:
+            - img [ref=e178]
+            - generic [ref=e180]:
+              - paragraph [ref=e181]: Materials
+              - paragraph [ref=e182]:
+                - text: "0"
+                - generic [ref=e183]: /1
+              - paragraph [ref=e184]: Completed
+      - generic [ref=e185]:
+        - generic [ref=e186]:
+          - generic [ref=e187]:
+            - heading "Attendance History" [level=3] [ref=e188]
+            - paragraph [ref=e189]: Daily record
+          - generic [ref=e190]:
+            - combobox [ref=e191] [cursor=pointer]:
+              - option "Jan"
+              - option "Feb"
+              - option "Mar"
+              - option "Apr" [selected]
+              - option "May"
+              - option "Jun"
+              - option "Jul"
+              - option "Aug"
+              - option "Sep"
+              - option "Oct"
+              - option "Nov"
+              - option "Dec"
+            - combobox [ref=e192] [cursor=pointer]:
+              - option "2025"
+              - option "2026" [selected]
+              - option "2027"
+        - generic [ref=e193]:
+          - generic [ref=e196]: 11 Present
+          - generic [ref=e199]: 2 Absent
+          - generic [ref=e201]: 85% attendance
+        - table [ref=e203]:
+          - rowgroup [ref=e204]:
+            - row "Date Day Status" [ref=e205]:
+              - columnheader "Date" [ref=e206]
+              - columnheader "Day" [ref=e207]
+              - columnheader "Status" [ref=e208]
+          - rowgroup [ref=e209]:
+            - row "17 Apr 2026 Fri Present" [ref=e210]:
+              - cell "17 Apr 2026" [ref=e211]
+              - cell "Fri" [ref=e212]
+              - cell "Present" [ref=e213]:
+                - generic [ref=e214]: Present
+            - row "16 Apr 2026 Thu Present" [ref=e216]:
+              - cell "16 Apr 2026" [ref=e217]
+              - cell "Thu" [ref=e218]
+              - cell "Present" [ref=e219]:
+                - generic [ref=e220]: Present
+            - row "15 Apr 2026 Wed Present" [ref=e222]:
+              - cell "15 Apr 2026" [ref=e223]
+              - cell "Wed" [ref=e224]
+              - cell "Present" [ref=e225]:
+                - generic [ref=e226]: Present
+            - row "14 Apr 2026 Tue Present" [ref=e228]:
+              - cell "14 Apr 2026" [ref=e229]
+              - cell "Tue" [ref=e230]
+              - cell "Present" [ref=e231]:
+                - generic [ref=e232]: Present
+            - row "13 Apr 2026 Mon Present" [ref=e234]:
+              - cell "13 Apr 2026" [ref=e235]
+              - cell "Mon" [ref=e236]
+              - cell "Present" [ref=e237]:
+                - generic [ref=e238]: Present
+            - row "10 Apr 2026 Fri Absent" [ref=e240]:
+              - cell "10 Apr 2026" [ref=e241]
+              - cell "Fri" [ref=e242]
+              - cell "Absent" [ref=e243]:
+                - generic [ref=e244]: Absent
+            - row "09 Apr 2026 Thu Present" [ref=e246]:
+              - cell "09 Apr 2026" [ref=e247]
+              - cell "Thu" [ref=e248]
+              - cell "Present" [ref=e249]:
+                - generic [ref=e250]: Present
+            - row "08 Apr 2026 Wed Present" [ref=e252]:
+              - cell "08 Apr 2026" [ref=e253]
+              - cell "Wed" [ref=e254]
+              - cell "Present" [ref=e255]:
+                - generic [ref=e256]: Present
+            - row "07 Apr 2026 Tue Absent" [ref=e258]:
+              - cell "07 Apr 2026" [ref=e259]
+              - cell "Tue" [ref=e260]
+              - cell "Absent" [ref=e261]:
+                - generic [ref=e262]: Absent
+            - row "06 Apr 2026 Mon Present" [ref=e264]:
+              - cell "06 Apr 2026" [ref=e265]
+              - cell "Mon" [ref=e266]
+              - cell "Present" [ref=e267]:
+                - generic [ref=e268]: Present
+            - row "03 Apr 2026 Fri Present" [ref=e270]:
+              - cell "03 Apr 2026" [ref=e271]
+              - cell "Fri" [ref=e272]
+              - cell "Present" [ref=e273]:
+                - generic [ref=e274]: Present
+            - row "02 Apr 2026 Thu Present" [ref=e276]:
+              - cell "02 Apr 2026" [ref=e277]
+              - cell "Thu" [ref=e278]
+              - cell "Present" [ref=e279]:
+                - generic [ref=e280]: Present
+            - row "01 Apr 2026 Wed Present" [ref=e282]:
+              - cell "01 Apr 2026" [ref=e283]
+              - cell "Wed" [ref=e284]
+              - cell "Present" [ref=e285]:
+                - generic [ref=e286]: Present
+      - generic [ref=e288]:
+        - generic [ref=e289]:
+          - generic [ref=e290]:
+            - heading "Course Progress" [level=3] [ref=e291]
+            - paragraph [ref=e292]: Study material completion
+          - generic [ref=e293]:
+            - paragraph [ref=e294]: 0%
+            - paragraph [ref=e295]: Overall
+        - generic [ref=e298]:
+          - generic [ref=e299]:
+            - paragraph [ref=e300]: "0"
+            - paragraph [ref=e301]: Completed
+          - generic [ref=e303]:
+            - paragraph [ref=e304]: "0"
+            - paragraph [ref=e305]: In Progress
+          - generic [ref=e307]:
+            - paragraph [ref=e308]: "0"
+            - paragraph [ref=e309]: Late
+          - generic [ref=e311]:
+            - paragraph [ref=e312]: "1"
+            - paragraph [ref=e313]: Not Started
+  - dialog "Congratulations, Arjun!" [ref=e316]:
+    - generic [ref=e317]:
+      - generic [ref=e318]:
+        - img [ref=e320]
+        - paragraph [ref=e323]: Promoted · 9A → 10A
+        - heading "Congratulations, Arjun!" [level=2] [ref=e324]
+        - paragraph [ref=e325]:
+          - text: You’ve moved up to
+          - generic [ref=e326]: Class 10A
+          - text: at School Space Academy. A fresh year awaits — new assignments, new materials, new results.
+      - generic [ref=e327]:
+        - generic [ref=e328]:
+          - img [ref=e329]
+          - generic [ref=e332]:
+            - paragraph [ref=e333]: Status
+            - paragraph [ref=e334]: Promoted
+          - generic [ref=e335]:
+            - paragraph [ref=e336]: From → To
+            - paragraph [ref=e337]: 9A → 10A
+        - button "Continue to my dashboard" [ref=e338]
+        - paragraph [ref=e339]: This message is shown only once — on your first login for this session.

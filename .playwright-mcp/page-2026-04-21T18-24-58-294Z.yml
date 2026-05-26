@@ -1,0 +1,61 @@
+- generic [ref=e193]:
+  - generic [ref=e201]:
+    - generic [ref=e202]:
+      - img [ref=e204]
+      - generic [ref=e207]: School Space
+    - generic [ref=e208]:
+      - generic [ref=e209]:
+        - generic [ref=e210]:
+          - img [ref=e211]
+          - generic [ref=e213]: Complete School Management
+        - heading "Education Reimagined" [level=2] [ref=e214]:
+          - text: Education
+          - text: Reimagined
+        - paragraph [ref=e215]: One platform for students, teachers, and parents — with smart tools for learning, tracking, and growing together.
+      - generic [ref=e216]:
+        - generic [ref=e217]:
+          - img [ref=e219]
+          - paragraph [ref=e221]: Smart study materials with interactive quizzes
+        - generic [ref=e222]:
+          - img [ref=e224]
+          - paragraph [ref=e226]: Real-time performance & analytics dashboard
+        - generic [ref=e227]:
+          - img [ref=e229]
+          - paragraph [ref=e234]: Seamless parent-teacher-student communication
+        - generic [ref=e235]:
+          - img [ref=e237]
+          - paragraph [ref=e240]: Secure role-based access for every user
+    - paragraph [ref=e241]: © 2026 School Space. All rights reserved.
+  - generic [ref=e244]:
+    - generic [ref=e245]:
+      - generic [ref=e246]:
+        - img [ref=e248]
+        - generic [ref=e251]: School Space
+      - paragraph [ref=e252]: Welcome back — log in to your school account
+    - generic [ref=e254]:
+      - generic [ref=e255]:
+        - generic [ref=e256]: Username
+        - generic [ref=e257]:
+          - img [ref=e259]
+          - textbox "Username or Student Code" [ref=e262]
+      - generic [ref=e263]:
+        - generic [ref=e264]: School Code
+        - generic [ref=e265]:
+          - img [ref=e267]
+          - textbox "e.g. AB12" [ref=e270]: SS01
+      - generic [ref=e271]:
+        - generic [ref=e272]:
+          - generic [ref=e273]: Password
+          - link "Forgot?" [ref=e274] [cursor=pointer]:
+            - /url: /forgot-password
+        - generic [ref=e275]:
+          - img [ref=e277]
+          - textbox "••••••••" [ref=e280]
+          - button [ref=e281]:
+            - img [ref=e282]
+      - button "Continue" [ref=e285]
+      - generic [ref=e290]: Or
+    - generic [ref=e291]:
+      - text: Don't have an account?
+      - link "Sign Up" [ref=e292] [cursor=pointer]:
+        - /url: /role-selection

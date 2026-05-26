@@ -1,0 +1,11 @@
+- generic [ref=e110]:
+  - generic [ref=e114]: 🎓
+  - heading "Welcome, Rahul!" [level=1] [ref=e115]
+  - generic [ref=e116]:
+    - paragraph [ref=e117]: Your Student ID
+    - generic [ref=e118]:
+      - paragraph [ref=e119]: •••••••••
+      - button "Show ID" [ref=e120]:
+        - img [ref=e121]
+  - paragraph [ref=e124]: Please keep this ID safe. You will need it for exams and other school activities.
+  - button "Continue to Dashboard" [ref=e125]

@@ -1,0 +1,21 @@
+# Ignore specific log and temp files
+# But allow Backend and its subdirectories (handled by nodemon default usually but being explicit)
+# Actually, the best way to ignore specific files:
+all_requests.log
+server_startup.txt
+backend_retry.log
+backend.log
+backend_startup.log
+login_debug.log
+parent_debug.txt
+verify_hit.log
+verify_debug.log
+users.log
+*.log
+*.txt
+*.json
+!**/*.js
+node_modules
+uploads
+dist
+.git

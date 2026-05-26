@@ -1,0 +1,720 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model assignment {
+  id             Int          @id @default(autoincrement())
+  title          String
+  description    String?
+  classId        Int
+  subjectId      Int?
+  contentUrl     String?
+  submissionType String?      @default("BOTH")
+  dueDate        DateTime?
+  createdAt      DateTime     @default(now())
+  teacherId      Int?
+  isClosed       Boolean      @default(false)
+  sessionYear    Int?
+  Renamedclass   Renamedclass @relation(fields: [classId], references: [id], onDelete: Cascade, map: "Assignment_classId_fkey")
+  subject        subject?     @relation(fields: [subjectId], references: [id], onDelete: Cascade, map: "Assignment_subjectId_fkey")
+  teacher        teacher?     @relation(fields: [teacherId], references: [id], map: "Assignment_teacherId_fkey")
+  submission     submission[]
+
+  @@index([classId], map: "Assignment_classId_fkey")
+  @@index([subjectId], map: "Assignment_subjectId_fkey")
+  @@index([teacherId], map: "Assignment_teacherId_fkey")
+}
+
+model attendance {
+  id           Int          @id @default(autoincrement())
+  date         DateTime     @default(now())
+  status       String
+  studentId    Int
+  classId      Int
+  teacherId    Int?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime
+  Renamedclass Renamedclass @relation(fields: [classId], references: [id], onDelete: Cascade, map: "Attendance_classId_fkey")
+  student      student      @relation(fields: [studentId], references: [id], onDelete: Cascade, map: "Attendance_studentId_fkey")
+  teacher      teacher?     @relation(fields: [teacherId], references: [id], map: "Attendance_teacherId_fkey")
+
+  @@unique([studentId, date], map: "Attendance_studentId_date_key")
+  @@index([classId], map: "Attendance_classId_fkey")
+  @@index([teacherId], map: "Attendance_teacherId_fkey")
+}
+
+/// This model has been renamed to 'Renamedclass' during introspection, because the original name 'class' is reserved.
+model Renamedclass {
+  id                                        Int                     @id @default(autoincrement())
+  name                                      String
+  section                                   String
+  schoolId                                  Int
+  classHeadId                               Int?                    @unique(map: "Class_classHeadId_key")
+  assignment                                assignment[]
+  attendance                                attendance[]
+  teacher_Renamedclass_classHeadIdToteacher teacher?                @relation("Renamedclass_classHeadIdToteacher", fields: [classHeadId], references: [id], map: "Class_classHeadId_fkey")
+  school                                    school                  @relation(fields: [schoolId], references: [id], onDelete: Cascade, map: "Class_schoolId_fkey")
+  classexamsubmission                       classexamsubmission[]
+  enrollment                                enrollment[]
+  rating                                    rating[]
+  sessioncompletion                         sessioncompletion[]
+  student                                   student[]
+  studymaterial                             studymaterial[]
+  subjectexamsubmission                     subjectexamsubmission[]
+  teachersubject                            teachersubject[]
+  teacher_classteachers                     teacher[]               @relation("classteachers")
+
+  @@unique([name, section, schoolId], map: "Class_name_section_schoolId_key")
+  @@index([schoolId], map: "Class_schoolId_fkey")
+  @@map("class")
+}
+
+model enrollment {
+  id           Int          @id @default(autoincrement())
+  studentId    Int
+  classId      Int
+  year         Int
+  createdAt    DateTime     @default(now())
+  Renamedclass Renamedclass @relation(fields: [classId], references: [id], onDelete: Cascade, map: "Enrollment_classId_fkey")
+  student      student      @relation(fields: [studentId], references: [id], onDelete: Cascade, map: "Enrollment_studentId_fkey")
+
+  @@unique([studentId, classId, year], map: "Enrollment_studentId_classId_year_key")
+  @@index([classId], map: "Enrollment_classId_fkey")
+}
+
+model exammark {
+  id                 Int      @id @default(autoincrement())
+  studentId          Int
+  subjectId          Int
+  marks              Float
+  passMarks          Float?
+  fullMarks          Float?
+  examTerminal       String
+  createdAt          DateTime @default(now())
+  enteredById        Int?
+  practicalFullMarks Float?
+  practicalMarks     Float?
+  practicalPassMarks Float?
+  status             String?  @default("PASSED")
+  theoryFullMarks    Float?
+  theoryMarks        Float?
+  theoryPassMarks    Float?
+  totalFullMarks     Float?
+  totalPassMarks     Float?
+  teacher            teacher? @relation(fields: [enteredById], references: [id], map: "ExamMark_enteredById_fkey")
+  student            student  @relation(fields: [studentId], references: [id], onDelete: Cascade, map: "ExamMark_studentId_fkey")
+  subject            subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade, map: "ExamMark_subjectId_fkey")
+
+  @@unique([studentId, subjectId, examTerminal], map: "ExamMark_studentId_subjectId_examTerminal_key")
+  @@index([enteredById], map: "ExamMark_enteredById_fkey")
+  @@index([subjectId], map: "ExamMark_subjectId_fkey")
+}
+
+model fee {
+  id          Int           @id @default(autoincrement())
+  studentId   Int
+  amount      Float
+  type        String
+  status      String        @default("PENDING")
+  dueDate     DateTime
+  createdAt   DateTime      @default(now())
+  student     student       @relation(fields: [studentId], references: [id], onDelete: Cascade, map: "Fee_studentId_fkey")
+  transaction transaction[]
+
+  @@index([studentId], map: "Fee_studentId_fkey")
+}
+
+model feedback {
+  id          Int      @id @default(autoincrement())
+  teacherId   Int
+  studentId   Int
+  strength    String?
+  weakness    String?
+  opportunity String?
+  threat      String?
+  suggestion  String?
+  createdAt   DateTime @default(now())
+  student     student  @relation(fields: [studentId], references: [id], onDelete: Cascade, map: "Feedback_studentId_fkey")
+  teacher     teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade, map: "Feedback_teacherId_fkey")
+
+  @@index([studentId], map: "Feedback_studentId_fkey")
+  @@index([teacherId], map: "Feedback_teacherId_fkey")
+}
+
+model feedbackrequest {
+  id         Int      @id @default(autoincrement())
+  parentId   Int
+  studentId  Int
+  teacherId  Int?
+  preference String   @default("SYSTEM")
+  status     String   @default("PENDING")
+  createdAt  DateTime @default(now())
+  parent     parent   @relation(fields: [parentId], references: [id], onDelete: Cascade, map: "FeedbackRequest_parentId_fkey")
+  student    student  @relation(fields: [studentId], references: [id], onDelete: Cascade, map: "FeedbackRequest_studentId_fkey")
+  teacher    teacher? @relation(fields: [teacherId], references: [id], map: "FeedbackRequest_teacherId_fkey")
+
+  @@index([parentId], map: "FeedbackRequest_parentId_fkey")
+  @@index([studentId], map: "FeedbackRequest_studentId_fkey")
+  @@index([teacherId], map: "FeedbackRequest_teacherId_fkey")
+}
+
+model message {
+  id                            Int            @id @default(autoincrement())
+  fromUserId                    Int
+  toUserId                      Int
+  subject                       String
+  body                          String         @db.MediumText
+  status                        message_status @default(PENDING)
+  createdAt                     DateTime       @default(now())
+  user_message_fromUserIdTouser user           @relation("message_fromUserIdTouser", fields: [fromUserId], references: [id], onDelete: Cascade, map: "Message_fromUserId_fkey")
+  user_message_toUserIdTouser   user           @relation("message_toUserIdTouser", fields: [toUserId], references: [id], onDelete: Cascade, map: "Message_toUserId_fkey")
+
+  @@index([fromUserId], map: "Message_fromUserId_fkey")
+  @@index([toUserId], map: "Message_toUserId_fkey")
+}
+
+model notification {
+  id        Int      @id @default(autoincrement())
+  message   String
+  createdAt DateTime @default(now())
+  isRead    Boolean  @default(false)
+  type      String   @default("INFO")
+  adminId   Int?
+  studentId Int?
+  schoolId  Int
+  teacherId Int?
+  parentId  Int?
+  user      user?    @relation(fields: [adminId], references: [id], onDelete: Cascade, map: "Notification_adminId_fkey")
+  parent    parent?  @relation(fields: [parentId], references: [id], onDelete: Cascade, map: "Notification_parentId_fkey")
+  school    school   @relation(fields: [schoolId], references: [id], onDelete: Cascade, map: "Notification_schoolId_fkey")
+  student   student? @relation(fields: [studentId], references: [id], onDelete: Cascade, map: "Notification_studentId_fkey")
+  teacher   teacher? @relation(fields: [teacherId], references: [id], onDelete: Cascade, map: "Notification_teacherId_fkey")
+
+  @@index([adminId], map: "Notification_adminId_fkey")
+  @@index([schoolId], map: "Notification_schoolId_fkey")
+  @@index([studentId], map: "Notification_studentId_fkey")
+  @@index([teacherId], map: "Notification_teacherId_fkey")
+  @@index([parentId], map: "Notification_parentId_fkey")
+}
+
+model parent {
+  id              Int               @id @default(autoincrement())
+  firstName       String
+  lastName        String
+  email           String            @unique(map: "Parent_email_key")
+  userId          Int?              @unique(map: "Parent_userId_key")
+  schoolId        Int
+  createdAt       DateTime          @default(now())
+  feedbackrequest feedbackrequest[]
+  notification    notification[]
+  school          school            @relation(fields: [schoolId], references: [id], onDelete: Cascade, map: "Parent_schoolId_fkey")
+  user            user?             @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Parent_userId_fkey")
+  teachermessage  teachermessage[]
+  student         student[]         @relation("parentstudents")
+
+  @@index([schoolId], map: "Parent_schoolId_fkey")
+}
+
+model passwordresetrequest {
+  id        Int                         @id @default(autoincrement())
+  userId    Int
+  code      String
+  isUsed    Boolean                     @default(false)
+  status    passwordresetrequest_status @default(PENDING)
+  createdAt DateTime                    @default(now())
+  expiresAt DateTime
+  user      user                        @relation(fields: [userId], references: [id], onDelete: Cascade, map: "PasswordResetRequest_userId_fkey")
+
+  @@index([userId], map: "PasswordResetRequest_userId_fkey")
+}
+
+model pendingregistration {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique(map: "PendingRegistration_email_key")
+  data      Json
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model potentialmetric {
+  id                  Int      @id @default(autoincrement())
+  studentId           Int
+  session             String   @default("1st Session")
+  sessionYear         Int      @default(2026)
+  terminal            String?
+  snapshotAt          DateTime?
+  createdAt           DateTime @default(now())
+
+  // Performance components (auto-calculated)
+  examScore           Float?
+  assignmentScore     Float?
+  attendanceScore     Float?
+  performanceTotal    Float?
+
+  // Effort components (auto-calculated)
+  effortAssignment    Float?
+  effortMaterials     Float?
+  effortTotal         Float?
+
+  // Curiosity components
+  curiosityQuiz       Float?   // auto-calculated from quiz data
+  curiosityMcq        Float?   // teacher input 0-10
+  curiosityTotal      Float?   // quiz + mcq (set after teacher input)
+
+  // Learning speed (auto-calculated)
+  learningSpeed       Float?
+
+  // Potential total (set after teacher fills curiosityMcq)
+  potentialTotal      Float?
+
+  // Status: PENDING_TEACHER_REVIEW or COMPLETED
+  status              String   @default("PENDING_TEACHER_REVIEW")
+
+  // Legacy fields (kept for backward compat with old data)
+  monthYear           String?
+  effort              Float?
+  teacherMarks        Float?
+  curiosity           Int?
+  curiosityData       Json?
+  learningSpeedData   Json?
+  examDeviation       Float?
+  attendanceDeviation Float?
+
+  student             student  @relation(fields: [studentId], references: [id], onDelete: Cascade, map: "PotentialMetric_studentId_fkey")
+
+  @@unique([studentId, session, sessionYear], map: "PotentialMetric_studentId_session_sessionYear_key")
+}
+
+model rating {
+  id           Int           @id @default(autoincrement())
+  teacherId    Int
+  studentId    Int
+  subjectId    Int?
+  classId      Int?
+  score        Float
+  review       String?
+  session      String?
+  sessionYear  Int?
+  createdAt    DateTime      @default(now())
+  Renamedclass Renamedclass? @relation(fields: [classId], references: [id], onDelete: Cascade, map: "Rating_classId_fkey")
+  student      student       @relation(fields: [studentId], references: [id], onDelete: Cascade, map: "Rating_studentId_fkey")
+  subject      subject?      @relation(fields: [subjectId], references: [id], onDelete: Cascade, map: "Rating_subjectId_fkey")
+  teacher      teacher       @relation(fields: [teacherId], references: [id], onDelete: Cascade, map: "Rating_teacherId_fkey")
+
+  @@index([classId], map: "Rating_classId_fkey")
+  @@index([studentId], map: "Rating_studentId_fkey")
+  @@index([subjectId], map: "Rating_subjectId_fkey")
+  @@index([teacherId], map: "Rating_teacherId_fkey")
+}
+
+model school {
+  id                         Int                 @id @default(autoincrement())
+  name                       String
+  code                       String              @unique(map: "School_code_key")
+  email                      String?
+  createdAt                  DateTime            @default(now())
+  adminId                    Int?                @unique(map: "School_adminId_key")
+  ratingsEnabled             Boolean             @default(false)
+  parentMessagingEnabled     Boolean             @default(false)
+  multiClassTeachersEnabled  Boolean             @default(false)
+  studentAnalyticsEnabled    Boolean             @default(false)
+  activeRatingYear           Int?
+  activePerformanceSession   String?
+  activePerformanceYear      Int?
+  activeExamTerminal         String?
+  activeRatingSession        String?
+  emailPass                  String?             @db.VarChar(255)
+  address                    String?
+  logoUrl                    String?
+  phone                      String?
+  Renamedclass               Renamedclass[]
+  notification               notification[]
+  parent                     parent[]
+  user_school_adminIdTouser  user?               @relation("school_adminIdTouser", fields: [adminId], references: [id], map: "School_adminId_fkey")
+  schoolexampublish          schoolexampublish[]
+  sessioncompletion          sessioncompletion[]
+  student                    student[]
+  subject                    subject[]
+  teacher                    teacher[]
+  user_user_schoolIdToschool user[]              @relation("user_schoolIdToschool")
+}
+
+model sessioncompletion {
+  id           Int          @id @default(autoincrement())
+  classId      Int
+  teacherId    Int
+  session      String
+  year         Int
+  completedAt  DateTime     @default(now())
+  schoolId     Int?
+  Renamedclass Renamedclass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  school       school?      @relation(fields: [schoolId], references: [id])
+  teacher      teacher      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, session, year])
+  @@index([schoolId], map: "sessioncompletion_schoolId_fkey")
+  @@index([teacherId], map: "sessioncompletion_teacherId_fkey")
+}
+
+model schoolcoderequest {
+  id        Int                      @id @default(autoincrement())
+  email     String
+  userId    Int?
+  status    schoolcoderequest_status @default(PENDING)
+  createdAt DateTime                 @default(now())
+  expiresAt DateTime
+  user      user?                    @relation(fields: [userId], references: [id], onDelete: Cascade, map: "SchoolCodeRequest_userId_fkey")
+
+  @@index([userId], map: "SchoolCodeRequest_userId_fkey")
+}
+
+model student {
+  id                    Int                     @id @default(autoincrement())
+  studentCode           String                  @unique(map: "Student_studentCode_key")
+  rollNo                Int
+  firstName             String
+  lastName              String
+  userId                Int?                    @unique(map: "Student_userId_key")
+  schoolId              Int
+  classId               Int?
+  createdAt             DateTime                @default(now())
+  email                 String?                 @unique(map: "Student_email_key")
+  isApproved            Boolean                 @default(false)
+  promotionStatus       String?                 @default("NONE") // NONE, PENDING, PROMOTED, RETAINED, GRADUATED
+  graduatedAt               DateTime?
+  graduationYear            Int?
+  promotionAcknowledgedAt   DateTime?
+  previousClass             String?   // e.g. "9A" — the class the student was in before the last PROMOTED/RETAINED/GRADUATED action
+  attendance            attendance[]
+  enrollment            enrollment[]
+  exammark              exammark[]
+  fee                   fee[]
+  feedback              feedback[]
+  feedbackrequest       feedbackrequest[]
+  notification          notification[]
+  potentialmetric       potentialmetric[]
+  quizresponse          quizresponse[]
+  rating                rating[]
+  Renamedclass          Renamedclass?           @relation(fields: [classId], references: [id], map: "Student_classId_fkey")
+  school                school                  @relation(fields: [schoolId], references: [id], onDelete: Cascade, map: "Student_schoolId_fkey")
+  user                  user?                   @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Student_userId_fkey")
+  studentmaterialstatus studentmaterialstatus[]
+  submission            submission[]
+  teachermessage        teachermessage[]
+  transaction           transaction[]
+  parent                parent[]                @relation("parentstudents")
+
+  @@unique([classId, rollNo], map: "Student_classId_rollNo_key")
+  @@index([schoolId], map: "Student_schoolId_fkey")
+}
+
+model studentmaterialstatus {
+  id              Int           @id @default(autoincrement())
+  studentId       Int
+  studyMaterialId Int
+  status          String        @default("TODO")
+  lastPosition    Float         @default(0)
+  totalDuration   Float         @default(0)
+  updatedAt       DateTime      @default(now())
+  completedAt     DateTime?
+  student         student       @relation(fields: [studentId], references: [id], onDelete: Cascade, map: "StudentMaterialStatus_studentId_fkey")
+  studymaterial   studymaterial @relation(fields: [studyMaterialId], references: [id], onDelete: Cascade, map: "StudentMaterialStatus_studyMaterialId_fkey")
+
+  @@unique([studentId, studyMaterialId], map: "StudentMaterialStatus_studentId_studyMaterialId_key")
+  @@index([studyMaterialId], map: "StudentMaterialStatus_studyMaterialId_fkey")
+}
+
+model studymaterial {
+  id                    Int                     @id @default(autoincrement())
+  title                 String
+  description           String?
+  fileUrl               String?
+  thumbnailUrl          String?
+  type                  String                  @default("VIDEO")
+  content               String?
+  createdAt             DateTime                @default(now())
+  teacherId             Int
+  classId               Int
+  subjectId             Int
+  deadline              DateTime?
+  quizsets              quizset[]
+  studentmaterialstatus studentmaterialstatus[]
+  Renamedclass          Renamedclass            @relation(fields: [classId], references: [id], map: "StudyMaterial_classId_fkey")
+  subject               subject                 @relation(fields: [subjectId], references: [id], map: "StudyMaterial_subjectId_fkey")
+  teacher               teacher                 @relation(fields: [teacherId], references: [id], map: "StudyMaterial_teacherId_fkey")
+
+  @@index([classId], map: "StudyMaterial_classId_fkey")
+  @@index([subjectId], map: "StudyMaterial_subjectId_fkey")
+  @@index([teacherId], map: "StudyMaterial_teacherId_fkey")
+}
+
+model subject {
+  id                    Int                     @id @default(autoincrement())
+  name                  String
+  schoolId              Int
+  assignment            assignment[]
+  exammark              exammark[]
+  rating                rating[]
+  studymaterial         studymaterial[]
+  school                school                  @relation(fields: [schoolId], references: [id], onDelete: Cascade, map: "Subject_schoolId_fkey")
+  subjectexamsubmission subjectexamsubmission[]
+  teachersubject        teachersubject[]
+
+  @@unique([name, schoolId], map: "Subject_name_schoolId_key")
+  @@index([schoolId], map: "Subject_schoolId_fkey")
+}
+
+model submission {
+  id           Int        @id @default(autoincrement())
+  assignmentId Int
+  studentId    Int
+  submittedAt  DateTime   @default(now())
+  grade        Float?
+  gradedById   Int?
+  fileUrl      String?
+  feedback     String?
+  assignment   assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade, map: "Submission_assignmentId_fkey")
+  teacher      teacher?   @relation(fields: [gradedById], references: [id], map: "Submission_gradedById_fkey")
+  student      student    @relation(fields: [studentId], references: [id], onDelete: Cascade, map: "Submission_studentId_fkey")
+
+  @@index([assignmentId], map: "Submission_assignmentId_fkey")
+  @@index([gradedById], map: "Submission_gradedById_fkey")
+  @@index([studentId], map: "Submission_studentId_fkey")
+}
+
+model teacher {
+  id                                             Int                     @id @default(autoincrement())
+  userId                                         Int?                    @unique(map: "Teacher_userId_key")
+  isClassTeacher                                 Boolean                 @default(false)
+  schoolId                                       Int
+  createdAt                                      DateTime                @default(now())
+  status                                         teacher_status          @default(PENDING)
+  email                                          String?                 @unique(map: "Teacher_email_key")
+  assignment                                     assignment[]
+  attendance                                     attendance[]
+  Renamedclass_Renamedclass_classHeadIdToteacher Renamedclass?           @relation("Renamedclass_classHeadIdToteacher")
+  classexamsubmission                            classexamsubmission[]
+  exammark                                       exammark[]
+  feedback                                       feedback[]
+  feedbackrequest                                feedbackrequest[]
+  notification                                   notification[]
+  rating                                         rating[]
+  sessioncompletion                              sessioncompletion[]
+  studymaterial                                  studymaterial[]
+  subjectexamsubmission                          subjectexamsubmission[]
+  submission                                     submission[]
+  school                                         school                  @relation(fields: [schoolId], references: [id], onDelete: Cascade, map: "Teacher_schoolId_fkey")
+  user                                           user?                   @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Teacher_userId_fkey")
+  teachermessage                                 teachermessage[]
+  teachersubject                                 teachersubject[]
+  Renamedclass_classteachers                     Renamedclass[]          @relation("classteachers")
+
+  @@unique([userId, schoolId], map: "Teacher_userId_schoolId_key")
+  @@index([schoolId], map: "Teacher_schoolId_fkey")
+}
+
+model teachermessage {
+  id        Int      @id @default(autoincrement())
+  teacherId Int
+  parentId  Int
+  studentId Int
+  subject   String
+  body      String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  parent    parent   @relation(fields: [parentId], references: [id], onDelete: Cascade, map: "TeacherMessage_parentId_fkey")
+  student   student  @relation(fields: [studentId], references: [id], onDelete: Cascade, map: "TeacherMessage_studentId_fkey")
+  teacher   teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade, map: "TeacherMessage_teacherId_fkey")
+
+  @@index([parentId], map: "TeacherMessage_parentId_fkey")
+  @@index([studentId], map: "TeacherMessage_studentId_fkey")
+  @@index([teacherId], map: "TeacherMessage_teacherId_fkey")
+}
+
+model teachersubject {
+  id           Int          @id @default(autoincrement())
+  teacherId    Int
+  subjectId    Int
+  classId      Int
+  Renamedclass Renamedclass @relation(fields: [classId], references: [id], onDelete: Cascade, map: "TeacherSubject_classId_fkey")
+  subject      subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade, map: "TeacherSubject_subjectId_fkey")
+  teacher      teacher      @relation(fields: [teacherId], references: [id], onDelete: Cascade, map: "TeacherSubject_teacherId_fkey")
+
+  @@unique([teacherId, subjectId, classId], map: "TeacherSubject_teacherId_subjectId_classId_key")
+  @@index([classId], map: "TeacherSubject_classId_fkey")
+  @@index([subjectId], map: "TeacherSubject_subjectId_fkey")
+}
+
+model transaction {
+  id        Int      @id @default(autoincrement())
+  feeId     Int?
+  studentId Int
+  amount    Float
+  date      DateTime @default(now())
+  method    String?
+  fee       fee?     @relation(fields: [feeId], references: [id], map: "Transaction_feeId_fkey")
+  student   student  @relation(fields: [studentId], references: [id], onDelete: Cascade, map: "Transaction_studentId_fkey")
+
+  @@index([feeId], map: "Transaction_feeId_fkey")
+  @@index([studentId], map: "Transaction_studentId_fkey")
+}
+
+model user {
+  id                               Int                    @id @default(autoincrement())
+  username                         String                 @unique(map: "User_username_key")
+  password                         String?
+  email                            String?                @unique(map: "User_email_key")
+  role                             user_role
+  firstName                        String
+  lastName                         String
+  isActive                         Boolean                @default(true)
+  emailVerified                    Boolean                @default(false)
+  recoveryCode                     String?
+  createdAt                        DateTime               @default(now())
+  verificationCode                 String?
+  verificationCodeExpiresAt        DateTime?
+  schoolId                         Int?
+  failedAttempts                   Int                    @default(0)
+  lockoutUntil                     DateTime?
+  message_message_fromUserIdTouser message[]              @relation("message_fromUserIdTouser")
+  message_message_toUserIdTouser   message[]              @relation("message_toUserIdTouser")
+  notification                     notification[]
+  parent                           parent?
+  passwordresetrequest             passwordresetrequest[]
+  school_school_adminIdTouser      school?                @relation("school_adminIdTouser")
+  schoolcoderequest                schoolcoderequest[]
+  schoolexampublish                schoolexampublish[]
+  student                          student?
+  teacher                          teacher?
+  school_user_schoolIdToschool     school?                @relation("user_schoolIdToschool", fields: [schoolId], references: [id], map: "User_schoolId_fkey")
+
+  @@index([schoolId], map: "User_schoolId_fkey")
+}
+
+model quizset {
+  id              Int           @id @default(autoincrement())
+  studyMaterialId Int
+  timestamp       Float?
+  createdAt       DateTime      @default(now())
+  questions       question[]
+  studymaterial   studymaterial @relation(fields: [studyMaterialId], references: [id], onDelete: Cascade)
+
+  @@index([studyMaterialId], map: "quizset_studyMaterialId_fkey")
+}
+
+model question {
+  id        Int            @id @default(autoincrement())
+  quizSetId Int
+  type      String         @default("MCQ")
+  text      String         @db.Text
+  options   Json?
+  quizset   quizset        @relation(fields: [quizSetId], references: [id], onDelete: Cascade)
+  responses quizresponse[]
+
+  @@index([quizSetId], map: "question_quizSetId_fkey")
+}
+
+model quizresponse {
+  id         Int      @id @default(autoincrement())
+  studentId  Int
+  questionId Int
+  answer     String   @db.Text
+  isCorrect  Boolean?
+  feedback   String?  @db.Text
+  createdAt  DateTime @default(now())
+  question   question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  student    student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, questionId])
+  @@index([questionId], map: "quizresponse_questionId_fkey")
+}
+
+model subjectexamsubmission {
+  id           Int          @id @default(autoincrement())
+  classId      Int
+  subjectId    Int
+  examTerminal String
+  status       String       @default("SUBMITTED")
+  submittedAt  DateTime     @default(now())
+  teacherId    Int?
+  Renamedclass Renamedclass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subject      subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacher      teacher?     @relation(fields: [teacherId], references: [id])
+
+  @@unique([classId, subjectId, examTerminal])
+  @@index([classId])
+  @@index([subjectId])
+  @@index([teacherId])
+}
+
+model classexamsubmission {
+  id           Int          @id @default(autoincrement())
+  classId      Int
+  examTerminal String
+  status       String       @default("SUBMITTED")
+  submittedAt  DateTime     @default(now())
+  teacherId    Int?
+  Renamedclass Renamedclass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacher      teacher?     @relation(fields: [teacherId], references: [id])
+
+  @@unique([classId, examTerminal])
+  @@index([classId])
+  @@index([teacherId])
+}
+
+model schoolexampublish {
+  id                    Int       @id @default(autoincrement())
+  schoolId              Int
+  examTerminal          String
+  status                String    @default("PUBLISHED")
+  calculationStatus     String    @default("NOT_STARTED")
+  publishedAt           DateTime  @default(now())
+  calculationSnapshotAt DateTime?
+  adminId               Int?
+  user              user?    @relation(fields: [adminId], references: [id])
+  school            school   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, examTerminal])
+  @@index([schoolId])
+  @@index([adminId], map: "schoolexampublish_adminId_fkey")
+}
+
+enum schoolcoderequest_status {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum passwordresetrequest_status {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum user_role {
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+}
+
+enum message_status {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum teacher_status {
+  PENDING
+  ACTIVE
+  ON_LEAVE
+  SUSPENDED
+  REJECTED
+}

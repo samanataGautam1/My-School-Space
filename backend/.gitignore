@@ -1,0 +1,38 @@
+# Root .gitignore covers most rules — this file adds backend-specific entries
+
+node_modules/
+.env
+.env.*
+!.env.example
+
+# Prisma generated client
+generated/
+
+# Uploaded files (assignments, study materials, thumbnails)
+uploads/
+
+# Runtime log files
+*.log
+all_requests.log
+briefing_debug.log
+debug_routes.log
+login_debug.log
+signup_error.log
+verify_hit.log
+
+# One-off debug/test scripts left from development (already deleted, but safety net)
+check_*.js
+debug_*.js
+broad_*.js
+assign_*.js
+clear_*.js
+convert_*.js
+count_*.js
+fix_*.js
+patch_*.js
+seed_*.js
+test_*.js
+update_*.js
+verify_*.js
+*.json.bak
+*.txt

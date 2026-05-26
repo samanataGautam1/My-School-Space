@@ -1,0 +1,73 @@
+# ── Dependencies ──────────────────────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# ── Environment Variables ─────────────────────────────────────────────────────
+# NEVER commit .env files — they contain secrets, DB credentials, JWT keys
+.env
+.env.*
+!.env.example
+
+# ── Build Output ──────────────────────────────────────────────────────────────
+frontend/dist/
+frontend/build/
+backend/dist/
+backend/build/
+
+# ── Uploads (user-generated files, can be large) ─────────────────────────────
+backend/uploads/
+
+# ── Log Files ─────────────────────────────────────────────────────────────────
+*.log
+logs/
+backend/all_requests.log
+backend/briefing_debug.log
+backend/debug_routes.log
+backend/login_debug.log
+backend/signup_error.log
+backend/verify_hit.log
+backend/verify_debug.log
+backend/mailer_debug.log
+backend/src/debug_routes.log
+backend/src/reply_error.log
+
+# ── Prisma Generated Client ───────────────────────────────────────────────────
+backend/generated/
+backend/node_modules/.prisma/
+
+# ── Debug / Temp Files (left over from development) ──────────────────────────
+*.txt.bak
+backend/*.txt
+*.txt
+backend/C:/
+
+# ── OS Files ──────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ── IDE / Editor ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+.cache/
+.parcel-cache/
+.turbo/
+*.tsbuildinfo
