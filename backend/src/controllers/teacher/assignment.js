@@ -5,16 +5,7 @@ const prisma = new PrismaClient();
 const router = express.Router();
 const { updateStudentAssignmentPerformance } = require('./performanceHelper');
 
-const fs = require('fs');
-const logFile = path.join(__dirname, '../../debug_routes.log');
-
-console.log("[DEBUG] Assignment Router Loaded");
-fs.appendFileSync(logFile, `[DEBUG_ASSIGN_LOAD] ${new Date().toISOString()} | Assignment Router Loaded\n`);
-
-router.use((req, res, next) => {
-    fs.appendFileSync(logFile, `[DEBUG_ASSIGN_HIT] ${new Date().toISOString()} | ${req.method} | ${req.url}\n`);
-    next();
-});
+console.log("[ASSIGN] Assignment Router Loaded");
 
 // Middleware to check authentication (Simplified for now, assumes user attach by main middleware)
 const authenticate = async (req, res, next) => {
@@ -449,7 +440,7 @@ router.get('/student', async (req, res) => {
             const submission = a.submission[0];
             let status = 'pending';
             const isLateSubmitted = submission && new Date(submission.submittedAt) > new Date(a.dueDate);
-            
+
             if (submission) {
                 status = submission.grade ? 'graded' : 'submitted';
             } else if (a.isClosed) {
@@ -611,7 +602,7 @@ router.post('/grade', async (req, res) => {
     TOGGLE ASSIGNMENT CLOSED STATUS
    ======================= */
 router.patch('/:id/toggle-close', async (req, res) => {
-    fs.appendFileSync(logFile, `[DEBUG_ASSIGN_PATCH] ${new Date().toISOString()} | Hit toggle-close route with ID: ${req.params.id}\n`);
+    console.log(`[ASSIGN] toggle-close route hit, ID: ${req.params.id}`);
     try {
         const { id } = req.params;
         const { teacherUserId } = req.body;

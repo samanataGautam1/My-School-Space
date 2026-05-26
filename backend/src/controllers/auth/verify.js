@@ -5,8 +5,7 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 router.post("/email", async (req, res) => {
-    require('fs').appendFileSync('verify_hit.log', 'Hit at ' + new Date().toISOString() + '\n');
-    console.log("VERIFY_ROUTE_HIT");
+    console.log("[VERIFY] Route hit at", new Date().toISOString());
     const { email, code } = req.body;
 
     if (!email || !code) {
@@ -31,9 +30,7 @@ router.post("/email", async (req, res) => {
             const data = pending.data;
 
             // detailed logging
-            const fs = require('fs');
-            fs.appendFileSync('verify_debug.log', `Checking user: ${data.username}, ${data.email}, TYPE: ${data.type || 'UNDEFINED'}, ROLE: ${data.role || 'UNDEFINED'}\n`);
-            fs.appendFileSync('verify_debug.log', `FULL DATA: ${JSON.stringify(data)}\n`);
+            console.log(`[VERIFY] Checking user: ${data.username}, ${data.email}, TYPE: ${data.type || 'UNDEFINED'}`);
 
             // Check if user already exists (idempotency/cleanup)
             const existingUser = await prisma.user.findFirst({
@@ -45,7 +42,7 @@ router.post("/email", async (req, res) => {
                 }
             });
 
-            fs.appendFileSync('verify_debug.log', `Existing user found: ${existingUser ? existingUser.id : 'null'}\n`);
+            console.log(`[VERIFY] Existing user found: ${existingUser ? existingUser.id : 'null'}`);
 
             if (existingUser) {
                 // If user exists and is verified, just cleanup pending
@@ -209,11 +206,11 @@ router.post("/email", async (req, res) => {
                         if (classMatch) {
                             const gName = classMatch[1];
                             const sName = classMatch[2].toUpperCase();
-                            
+
                             let cls = await prisma.renamedclass.findFirst({
                                 where: { schoolId: school.id, name: gName, section: sName }
                             });
-                            
+
                             if (!cls) {
                                 cls = await prisma.renamedclass.create({
                                     data: {
@@ -244,7 +241,7 @@ router.post("/email", async (req, res) => {
                     try {
                         const subjectNames = (data.assignments || []).map(a => a.subject).join(', ') || 'N/A';
                         const adminMsg = `New Teacher Registration: ${data.firstName} ${data.lastName} | Subjects: ${subjectNames}${data.classTeacherFor ? ` | Class Head Request: ${data.classTeacherFor}` : ''} | Status: Pending Approval.`;
-                        
+
                         await prisma.notification.create({
                             data: {
                                 adminId: school.adminId,
@@ -452,9 +449,7 @@ router.post("/email", async (req, res) => {
         });
 
     } catch (error) {
-        console.error("VERIFY_ERROR_STACK:", error.stack);
-        console.error("VERIFY_ERROR_MSG:", error.message);
-        require('fs').appendFileSync('verify_error.log', `[${new Date().toISOString()}] ERROR: ${error.stack}\n`);
+        console.error("[VERIFY] ERROR:", error.stack);
         res.status(500).json({ error: "Internal server error", details: error.message });
     }
 });

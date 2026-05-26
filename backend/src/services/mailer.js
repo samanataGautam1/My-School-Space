@@ -1,149 +1,116 @@
 require("dotenv").config();
-const { Resend } = require("resend");
+const { Resend } = require('resend');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-/* ================= CORE EMAIL SENDER ================= */
+/* ================= CORE SEND FUNCTION ================= */
 
 async function sendEmail({ to, subject, html }) {
     try {
-        const result = await resend.emails.send({
-            from: "School Space <onboarding@resend.dev>", // change later to your domain
+        const from = process.env.RESEND_FROM_EMAIL || "School Space <onboarding@resend.dev>";
+
+        const { data, error } = await resend.emails.send({
+            from,
             to,
             subject,
             html,
         });
 
-        console.log("📧 Email sent:", result);
-        return result;
+        if (error) {
+            console.error("❌ Resend error:", error);
+            throw error;
+        }
+
+        console.log("📧 Email sent:", data.id);
+        return data;
+
     } catch (error) {
-        console.error("❌ Email send failed:", error);
+        console.error("❌ Email failed:", error);
         throw error;
     }
 }
 
-/* ================= EMAIL FUNCTIONS ================= */
+/* ================= EMAIL TYPES ================= */
 
-/**
- * Verification Email
- */
 async function sendVerificationEmail(to, code, name) {
     return sendEmail({
         to,
         subject: "Verify Your Email - School Space",
         html: `
-            <div style="font-family: Arial; padding: 20px;">
-                <h2>Hello ${name}</h2>
-                <p>Your verification code is:</p>
-                <h1 style="letter-spacing:5px; color:green">${code}</h1>
-                <p>This code expires in 5 minutes.</p>
-            </div>
-        `
+            <h2>Hello ${name}</h2>
+            <p>Your OTP is:</p>
+            <h1 style="color:green; letter-spacing:5px">${code}</h1>
+            <p>Expires in 5 minutes.</p>
+        `,
     });
 }
 
-/**
- * Welcome Email
- */
-async function sendWelcomeEmail(to, name) {
-    return sendEmail({
-        to,
-        subject: "Welcome to School Space!",
-        html: `
-            <div style="font-family: Arial; padding: 20px;">
-                <h2>Welcome ${name} 🎉</h2>
-                <p>Your account has been successfully created.</p>
-            </div>
-        `
-    });
-}
-
-/**
- * Reset Password Email
- */
 async function sendResetEmail(to, code, name) {
     return sendEmail({
         to,
         subject: "Password Reset Code",
         html: `
-            <div style="font-family: Arial; padding: 20px;">
-                <h2>Hello ${name}</h2>
-                <p>Your password reset code is:</p>
-                <h1 style="letter-spacing:5px; color:red">${code}</h1>
-            </div>
-        `
+            <h2>Hello ${name}</h2>
+            <p>Your reset code:</p>
+            <h1 style="color:red; letter-spacing:5px">${code}</h1>
+        `,
     });
 }
 
-/**
- * Admin Notification Email
- */
+async function sendWelcomeEmail(to, name) {
+    return sendEmail({
+        to,
+        subject: "Welcome to School Space",
+        html: `<h2>Welcome ${name} 🎉</h2>`,
+    });
+}
+
 async function sendAdminNotification(to, userName, userRole, action) {
     return sendEmail({
         to,
         subject: `New ${action} Request`,
-        html: `
-            <p>${userRole} <b>${userName}</b> requested <b>${action}</b>.</p>
-        `
+        html: `<p>${userRole} <b>${userName}</b> requested ${action}</p>`,
     });
 }
 
-/**
- * School Code Email
- */
 async function sendSchoolCodeEmail(to, schoolCode, firstName, schoolName) {
     return sendEmail({
         to,
         subject: "School Code Recovery",
         html: `
-            <p>Hello ${firstName},</p>
-            <p>Your school code for <b>${schoolName}</b> is:</p>
+            <p>Hello ${firstName}</p>
+            <p>School: <b>${schoolName}</b></p>
             <h2>${schoolCode}</h2>
-        `
+        `,
     });
 }
 
-/* ================= DISABLED EMAILS (KEEP FOR SAFETY) ================= */
-
-async function sendJWTEmail() {
-    console.log("[MAILER] sendJWTEmail disabled");
-}
-
-async function sendSWOTReportEmail() {
-    console.log("[MAILER] sendSWOTReportEmail disabled");
-}
-
-async function sendPerformanceReportEmail() {
-    console.log("[MAILER] sendPerformanceReportEmail disabled");
-}
-
-async function sendFinalSessionReportEmail() {
-    console.log("[MAILER] sendFinalSessionReportEmail disabled");
-}
-
-async function sendTeacherComplaintEmail(to) {
-    console.log("[MAILER] sendTeacherComplaintEmail (simplified) sent to:", to);
+async function sendSWOTReportEmail(to, parentName, studentName, teacherName, swot, schoolId) {
     return sendEmail({
         to,
-        subject: "Student Notice",
-        html: `<p>Please check your portal for updates.</p>`
+        subject: `SWOT Report for ${studentName}`,
+        html: `
+            <h2>Hello ${parentName}</h2>
+            <p>A SWOT report has been submitted for <b>${studentName}</b> by <b>${teacherName}</b>.</p>
+            <table style="border-collapse:collapse;width:100%">
+              <tr><th style="background:#e8f5e9;padding:8px">Strength</th><td style="padding:8px">${swot.strength || '—'}</td></tr>
+              <tr><th style="background:#fff3e0;padding:8px">Weakness</th><td style="padding:8px">${swot.weakness || '—'}</td></tr>
+              <tr><th style="background:#e3f2fd;padding:8px">Opportunity</th><td style="padding:8px">${swot.opportunity || '—'}</td></tr>
+              <tr><th style="background:#fce4ec;padding:8px">Threat</th><td style="padding:8px">${swot.threat || '—'}</td></tr>
+              <tr><th style="background:#f3e5f5;padding:8px">Suggestion</th><td style="padding:8px">${swot.suggestion || '—'}</td></tr>
+            </table>
+        `,
     });
 }
 
 /* ================= EXPORTS ================= */
 
 module.exports = {
+    sendEmail,
     sendVerificationEmail,
-    sendWelcomeEmail,
     sendResetEmail,
+    sendWelcomeEmail,
     sendAdminNotification,
     sendSchoolCodeEmail,
-    sendTeacherComplaintEmail,
-
-    sendJWTEmail,
     sendSWOTReportEmail,
-    sendPerformanceReportEmail,
-    sendFinalSessionReportEmail,
-
-    sendEmail
 };

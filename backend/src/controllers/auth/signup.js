@@ -172,8 +172,7 @@ router.post('/admin', async (req, res) => {
 
     });
   } catch (err) {
-    console.error("Admin Registration Error:", err);
-    require('fs').appendFileSync('signup_error.log', `[${new Date().toISOString()}] ERROR: ${err.stack}\n`);
+    console.error("Admin Registration Error:", err.message);
     res.status(500).json({
       error: "Failed to initiate admin registration. Please try again.",
       details: err.message
@@ -372,7 +371,6 @@ router.post("/teacher", async (req, res) => {
       console.log(`[TEACHER_SIGNUP] Email dispatch triggered successfully.`);
     } catch (mailErr) {
       console.error(`[TEACHER_SIGNUP] EMAIL DISPATCH FAILED: ${mailErr.message}`);
-      require('fs').appendFileSync('signup_error.log', `[${new Date().toISOString()}] TEACHER MAIL ERROR: ${mailErr.stack}\n`);
     }
 
 
@@ -406,8 +404,7 @@ router.post("/teacher", async (req, res) => {
 
     });
   } catch (err) {
-    console.error("Teacher Registration Error:", err);
-    require('fs').appendFileSync('signup_error.log', `[${new Date().toISOString()}] TEACHER ERROR: ${err.stack}\n`);
+    console.error("Teacher Registration Error:", err.message);
     res.status(500).json({ error: "Failed to initiate teacher registration. Please try again." });
   }
 });
@@ -491,22 +488,22 @@ router.post("/student", async (req, res) => {
     // Find or Create Class (Lazy Creation)
     const classModel = prisma.renamedclass || prisma.Renamedclass;
     let cls = await classModel.findFirst({
-        where: {
-          schoolId: school.id,
+      where: {
+        schoolId: school.id,
+        name: gradeName,
+        section: sectionName
+      }
+    });
+
+    if (!cls) {
+      cls = await classModel.create({
+        data: {
           name: gradeName,
-          section: sectionName
+          section: sectionName,
+          schoolId: school.id
         }
       });
-  
-      if (!cls) {
-        cls = await classModel.create({
-          data: {
-            name: gradeName,
-            section: sectionName,
-            schoolId: school.id
-          }
-        });
-      }
+    }
 
     // Check if roll number already exists in this class (including unapproved ones)
     const rollNoExists = await prisma.student.findFirst({
@@ -522,57 +519,57 @@ router.post("/student", async (req, res) => {
 
     // Create User (Inactive) and Student (Unapproved)
     const newUser = await prisma.user.create({
-        data: {
-          username: usernameValidation.value,
-          password: hash,
-          firstName: firstNameValidation.value,
-          lastName: lastNameValidation.value,
-          role: 'STUDENT',
-          schoolId: school.id,
-          isActive: false, // Student cannot login until approved
-          emailVerified: true // Bypassing email verification
-        }
+      data: {
+        username: usernameValidation.value,
+        password: hash,
+        firstName: firstNameValidation.value,
+        lastName: lastNameValidation.value,
+        role: 'STUDENT',
+        schoolId: school.id,
+        isActive: false, // Student cannot login until approved
+        emailVerified: true // Bypassing email verification
+      }
     });
 
     const newStudent = await prisma.student.create({
-        data: {
-          firstName: firstNameValidation.value,
-          lastName: lastNameValidation.value,
-          rollNo: rollNoValidation.value,
-          studentCode: generateStudentCode(schoolCodeValidation.value),
-          userId: newUser.id,
-          schoolId: school.id,
-          classId: cls.id,
-          isApproved: false
-        }
+      data: {
+        firstName: firstNameValidation.value,
+        lastName: lastNameValidation.value,
+        rollNo: rollNoValidation.value,
+        studentCode: generateStudentCode(schoolCodeValidation.value),
+        userId: newUser.id,
+        schoolId: school.id,
+        classId: cls.id,
+        isApproved: false
+      }
     });
 
     // Notify the Class Teacher
     if (cls.classHeadId) {
-        try {
-            await prisma.notification.create({
-                data: {
-                    teacherId: cls.classHeadId, // Assuming notification can take teacherId or we use adminId logic
-                    message: `New student registration request for Class ${gradeName}${sectionName}: ${firstNameValidation.value} ${lastNameValidation.value}`,
-                    schoolId: school.id,
-                    type: 'APPROVAL_REQUEST'
-                }
-            });
-        } catch (notifErr) {
-            console.error("Failed to notify class teacher:", notifErr);
-        }
+      try {
+        await prisma.notification.create({
+          data: {
+            teacherId: cls.classHeadId, // Assuming notification can take teacherId or we use adminId logic
+            message: `New student registration request for Class ${gradeName}${sectionName}: ${firstNameValidation.value} ${lastNameValidation.value}`,
+            schoolId: school.id,
+            type: 'APPROVAL_REQUEST'
+          }
+        });
+      } catch (notifErr) {
+        console.error("Failed to notify class teacher:", notifErr);
+      }
     } else {
-        // Notify admin if no class head
-        if (school.adminId) {
-            await prisma.notification.create({
-                data: {
-                    adminId: school.adminId,
-                    message: `New student registration for Class ${gradeName}${sectionName} (No Class Head assigned): ${firstNameValidation.value} ${lastNameValidation.value}`,
-                    schoolId: school.id,
-                    type: 'APPROVAL_REQUEST'
-                }
-            });
-        }
+      // Notify admin if no class head
+      if (school.adminId) {
+        await prisma.notification.create({
+          data: {
+            adminId: school.adminId,
+            message: `New student registration for Class ${gradeName}${sectionName} (No Class Head assigned): ${firstNameValidation.value} ${lastNameValidation.value}`,
+            schoolId: school.id,
+            type: 'APPROVAL_REQUEST'
+          }
+        });
+      }
     }
 
     res.json({
@@ -705,7 +702,6 @@ router.post("/parent", async (req, res) => {
       console.log(`[PARENT_SIGNUP] Email dispatch triggered successfully.`);
     } catch (mailErr) {
       console.error(`[PARENT_SIGNUP] EMAIL DISPATCH FAILED: ${mailErr.message}`);
-      require('fs').appendFileSync('signup_error.log', `[${new Date().toISOString()}] PARENT MAIL ERROR: ${mailErr.stack}\n`);
     }
 
 
@@ -718,8 +714,7 @@ router.post("/parent", async (req, res) => {
 
     });
   } catch (err) {
-    console.error("Parent Registration Error:", err);
-    require('fs').appendFileSync('signup_error.log', `[${new Date().toISOString()}] PARENT ERROR: ${err.stack}\n`);
+    console.error("Parent Registration Error:", err.message);
     res.status(500).json({ error: "Failed to initiate parent registration. Please try again." });
   }
 });

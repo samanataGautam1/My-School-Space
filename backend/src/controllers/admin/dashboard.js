@@ -11,104 +11,7 @@ const NT = require('../../utils/notificationTypes');
 const prisma = new PrismaClient();
 const router = express.Router();
 
-// Auto-run script to insert 4th Term marks for Eight Student in Class 7A
-(async () => {
-  try {
-    const fs = require('fs');
-    const flagFile = path.join(__dirname, 'eight_student_inserted.txt');
-    if (fs.existsSync(flagFile)) {
-      return; // Already executed, skip
-    }
-
-    console.log('[AUTO-MARK] Looking for Eight Student...');
-    const student = await prisma.student.findFirst({
-      where: {
-        OR: [
-          { studentCode: 'MK120B10' },
-          { firstName: 'Eight', lastName: 'Student' }
-        ]
-      },
-      include: {
-        Renamedclass: { select: { id: true, name: true, section: true, schoolId: true } }
-      }
-    });
-
-    if (!student) {
-      console.log('[AUTO-MARK] Eight Student not found. Will retry next boot.');
-      return;
-    }
-
-    console.log(`[AUTO-MARK] Found student ID ${student.id} in Class ${student.Renamedclass?.name}${student.Renamedclass?.section}`);
-
-    // Get subjects assigned to this class
-    const classSubjects = await prisma.teachersubject.findMany({
-      where: { classId: student.classId },
-      include: { subject: true }
-    });
-
-    // Deduplicate subjects
-    const seen = new Set();
-    const subjects = [];
-    for (const ts of classSubjects) {
-      if (!seen.has(ts.subjectId)) {
-        seen.add(ts.subjectId);
-        subjects.push(ts);
-      }
-    }
-
-    if (subjects.length === 0) {
-      console.log('[AUTO-MARK] No subjects found for Class 7A!');
-      return;
-    }
-
-    const TERM = '4th Term';
-    const theoryMarks = 70;
-    const theoryFullMarks = 75;
-    const theoryPassMarks = 28;
-    const practicalMarks = 25;
-    const practicalFullMarks = 25;
-    const practicalPassMarks = 10;
-    const totalMarks = theoryMarks + practicalMarks;
-    const totalFullMarks = theoryFullMarks + practicalFullMarks;
-    const totalPassMarks = theoryPassMarks + practicalPassMarks;
-
-    let inserted = 0;
-    for (const ts of subjects) {
-      const existing = await prisma.exammark.findFirst({
-        where: { studentId: student.id, subjectId: ts.subjectId, examTerminal: TERM }
-      });
-
-      if (!existing) {
-        await prisma.exammark.create({
-          data: {
-            studentId: student.id,
-            subjectId: ts.subjectId,
-            enteredById: ts.teacherId || 1, // fallback to admin if no teacher
-            marks: totalMarks,
-            passMarks: totalPassMarks,
-            fullMarks: totalFullMarks,
-            theoryMarks,
-            theoryFullMarks,
-            theoryPassMarks,
-            practicalMarks,
-            practicalFullMarks,
-            practicalPassMarks,
-            totalFullMarks,
-            totalPassMarks,
-            examTerminal: TERM,
-            status: 'PASSED'
-          }
-        });
-        inserted++;
-      }
-    }
-
-    fs.writeFileSync(flagFile, `Inserted ${inserted} marks on ${new Date().toISOString()}`, 'utf8');
-    console.log(`[AUTO-MARK] Successfully inserted ${inserted} marks for Eight Student!`);
-  } catch (err) {
-    console.error('[AUTO-MARK] Error inserting marks:', err);
-  }
-})();
+// NOTE: one-time data seeding was here, moved to a migration script.
 
 /* ================= ALL ROUTES PROTECTED ================= */
 router.use(authMiddleware, allowRoles('ADMIN'));
@@ -775,8 +678,8 @@ router.patch("/settings/ratings", async (req, res) => {
       };
 
       if (teacherNotifications.length > 0) {
-        await prisma.notification.createMany({ 
-          data: [...teacherNotifications, studentBroadcast] 
+        await prisma.notification.createMany({
+          data: [...teacherNotifications, studentBroadcast]
         });
       } else {
         await prisma.notification.create({ data: studentBroadcast });
@@ -857,9 +760,9 @@ router.get('/messages/requests', async (req, res) => {
       .filter(Boolean);
     const parentRecords = parentSenderIds.length > 0
       ? await prisma.parent.findMany({
-          where: { userId: { in: parentSenderIds } },
-          include: { student: { select: { firstName: true, lastName: true } } }
-        })
+        where: { userId: { in: parentSenderIds } },
+        include: { student: { select: { firstName: true, lastName: true } } }
+      })
       : [];
     const parentByUserId = {};
     for (const p of parentRecords) {
@@ -1017,9 +920,9 @@ router.get('/pending-teachers', async (req, res) => {
       include: {
         user: true,
         teachersubject: {
-          include: { 
+          include: {
             subject: true,
-            Renamedclass: true 
+            Renamedclass: true
           }
         },
         Renamedclass_Renamedclass_classHeadIdToteacher: true // The class where this teacher is Head
@@ -1031,7 +934,7 @@ router.get('/pending-teachers', async (req, res) => {
         const teachingClasses = [...new Set(t.teachersubject.map(ts => `${ts.Renamedclass.name}${ts.Renamedclass.section}`))];
         const headOfClassObj = t.Renamedclass_Renamedclass_classHeadIdToteacher;
         const headOfClass = headOfClassObj ? `${headOfClassObj.name}${headOfClassObj.section}` : null;
-        
+
         return {
           id: t.id,
           name: `${t.user.firstName} ${t.user.lastName}`,
@@ -1131,7 +1034,7 @@ router.delete('/teachers/:id', async (req, res) => {
 
     // Also delete the user account if exists
     if (teacher.userId) {
-      await prisma.user.delete({ where: { id: teacher.userId } }).catch(() => {});
+      await prisma.user.delete({ where: { id: teacher.userId } }).catch(() => { });
     }
 
     res.json({ ok: true, message: 'Teacher permanently deleted' });
@@ -1169,8 +1072,8 @@ router.patch('/teachers/:id', async (req, res) => {
       if (isClassTeacher && classId) {
         // First, unset any other class where this teacher might be head (1-to-1 enforcement)
         await tx.renamedclass.updateMany({
-            where: { classHeadId: parseInt(id), id: { not: parseInt(classId) } },
-            data: { classHeadId: null }
+          where: { classHeadId: parseInt(id), id: { not: parseInt(classId) } },
+          data: { classHeadId: null }
         });
 
         // Set as head of the selected class
@@ -1264,7 +1167,7 @@ router.delete('/students/:id', async (req, res) => {
 router.get('/classes/overview', async (req, res) => {
   try {
     const schoolId = await getAdminSchoolId(req.user.userId);
-    
+
     // Fetch all classes for this school with student and parent relations
     const classes = await prisma.renamedclass.findMany({
       where: { schoolId },
@@ -1309,7 +1212,7 @@ router.get('/classes/overview', async (req, res) => {
       const classHead = cls.teacher_Renamedclass_classHeadIdToteacher;
       const studentCount = cls._count.student;
       const parentCount = parentSetByClass[cls.id] ? parentSetByClass[cls.id].size : 0;
-      
+
       if (cls.teachersubject.length === 0) {
         // Class with no subjects yet
         overview.push({
@@ -1338,7 +1241,7 @@ router.get('/classes/overview', async (req, res) => {
             parentCount
           });
         });
-        
+
         // Ensure class head is at least noted if not in any subject
         if (classHead) {
           const isAlreadyIn = cls.teachersubject.some(ts => ts.teacherId === classHead.id);
@@ -1385,7 +1288,7 @@ router.post('/classes', async (req, res) => {
   try {
     const schoolId = await getAdminSchoolId(req.user.userId);
     const { name, section } = req.body;
-    
+
     if (!name || !section) return res.status(400).json({ error: "Name and Section required" });
 
     const newClass = await prisma.renamedclass.create({
@@ -1403,7 +1306,7 @@ router.post('/subjects', async (req, res) => {
   try {
     const schoolId = await getAdminSchoolId(req.user.userId);
     const { name } = req.body;
-    
+
     if (!name) return res.status(400).json({ error: "Name required" });
 
     const newSubject = await prisma.subject.create({
@@ -1487,15 +1390,15 @@ router.delete('/classes/:id', async (req, res) => {
 // Update Class Teacher
 // Handle both POST and PATCH for head assignment
 router.post('/classes/:id/assign-class-teacher', async (req, res) => {
-    // Redirect to the patch handler logic or just define it here.
-    // Since we're in the same file, let's just make it call the same logic.
-    return handleAssignClassTeacher(req, res);
+  // Redirect to the patch handler logic or just define it here.
+  // Since we're in the same file, let's just make it call the same logic.
+  return handleAssignClassTeacher(req, res);
 });
 
 async function handleAssignClassTeacher(req, res) {
   try {
     const { id } = req.params;
-    const { teacherId } = req.body; 
+    const { teacherId } = req.body;
     const schoolId = await getAdminSchoolId(req.user.userId);
 
     const currentClass = await prisma.renamedclass.findFirst({
@@ -1628,9 +1531,9 @@ router.post('/publish-terminal', async (req, res) => {
     });
 
     let marks = await prisma.exammark.findMany({
-      where: { 
-        student: { schoolId }, 
-        examTerminal: examTerminal 
+      where: {
+        student: { schoolId },
+        examTerminal: examTerminal
       },
       include: { subject: true }
     });
@@ -2066,7 +1969,7 @@ router.post('/run-calculation', async (req, res) => {
       const resultMap = {};
       for (const mark of termMarks) {
         if (!resultMap[mark.studentId]) resultMap[mark.studentId] = { isFail: false, hasMarks: true };
-        if (['FAIL','FAILED'].includes(mark.status)) resultMap[mark.studentId].isFail = true;
+        if (['FAIL', 'FAILED'].includes(mark.status)) resultMap[mark.studentId].isFail = true;
       }
 
       let promoted = 0, pendingReview = 0, skipped = 0;
@@ -2503,7 +2406,7 @@ router.post('/end-session', async (req, res) => {
               data: { name: (level + 1).toString(), section: student.Renamedclass.section, schoolId }
             });
             allClasses.push(created);
-          } catch (_) {}
+          } catch (_) { }
           continue;
         }
 
@@ -2967,7 +2870,7 @@ router.get('/advance-session/preview', async (req, res) => {
       const studentResults = {};
       for (const m of examMarks) {
         if (!studentResults[m.studentId]) studentResults[m.studentId] = { isFail: false };
-        if (['FAIL','FAILED'].includes(m.status)) studentResults[m.studentId].isFail = true;
+        if (['FAIL', 'FAILED'].includes(m.status)) studentResults[m.studentId].isFail = true;
       }
 
       const withResults = Object.keys(studentResults).length;
@@ -3086,7 +2989,7 @@ router.post('/advance-session', async (req, res) => {
       const resultMap = {};
       for (const mark of examMarks) {
         if (!resultMap[mark.studentId]) resultMap[mark.studentId] = { isFail: false, hasMarks: true };
-        if (['FAIL','FAILED'].includes(mark.status)) resultMap[mark.studentId].isFail = true;
+        if (['FAIL', 'FAILED'].includes(mark.status)) resultMap[mark.studentId].isFail = true;
       }
 
       const promoYear = currentYear + 1;
@@ -3432,7 +3335,7 @@ router.get('/promotions', async (req, res) => {
       marksMap[mark.studentId].totalObtained += mark.marks || 0;
       marksMap[mark.studentId].totalFull += mark.fullMarks || 100;
       marksMap[mark.studentId].subjectCount++;
-      if (['FAIL','FAILED'].includes(mark.status)) marksMap[mark.studentId].isFail = true;
+      if (['FAIL', 'FAILED'].includes(mark.status)) marksMap[mark.studentId].isFail = true;
     }
 
     // Build a map for Class 10 specifically (4th term)
@@ -3444,7 +3347,7 @@ router.get('/promotions', async (req, res) => {
       class10MarksMap[mark.studentId].totalObtained += mark.marks || 0;
       class10MarksMap[mark.studentId].totalFull += mark.fullMarks || 100;
       class10MarksMap[mark.studentId].subjectCount++;
-      if (['FAIL','FAILED'].includes(mark.status)) class10MarksMap[mark.studentId].isFail = true;
+      if (['FAIL', 'FAILED'].includes(mark.status)) class10MarksMap[mark.studentId].isFail = true;
     }
 
     // Get all classes for "next class" lookup
@@ -3895,7 +3798,7 @@ router.post('/promotions/bulk', async (req, res) => {
     const resultMap = {};
     for (const mark of examMarks) {
       if (!resultMap[mark.studentId]) resultMap[mark.studentId] = { isFail: false, hasMarks: true };
-      if (['FAIL','FAILED'].includes(mark.status)) resultMap[mark.studentId].isFail = true;
+      if (['FAIL', 'FAILED'].includes(mark.status)) resultMap[mark.studentId].isFail = true;
     }
 
     const allClasses = await prisma.renamedclass.findMany({ where: { schoolId } });

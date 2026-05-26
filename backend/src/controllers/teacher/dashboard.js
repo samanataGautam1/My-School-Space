@@ -1,5 +1,4 @@
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
 const { PrismaClient } = require('@prisma/client');
 const { authMiddleware, allowRoles } = require('../../middleware/auth');
@@ -49,12 +48,7 @@ const getOrdinal = (n) => {
     return s[(v - 20) % 10] || s[v] || s[0];
 };
 
-// FILE DEBUG LOGGING
-router.use((req, res, next) => {
-  const logFile = path.join(__dirname, '../../debug_routes.log');
-  fs.appendFileSync(logFile, `[DEBUG_ROUTER] ${new Date().toISOString()} | ${req.method} | ${req.url}\n`);
-  next();
-});
+// Request logging removed - use cloud logging in production
 
 // Helper to DRY teacher lookup and validate userId
 async function getValidatedTeacher(req, res) {
@@ -178,7 +172,7 @@ router.get('/classes', async (req, res) => {
         if (!teacher) return;
 
         const classMap = new Map();
-        
+
         // Add class they are head of
         if (teacher.Renamedclass_Renamedclass_classHeadIdToteacher) {
             const c = teacher.Renamedclass_Renamedclass_classHeadIdToteacher;
@@ -218,7 +212,7 @@ router.get('/class/:classId/session-report', async (req, res) => {
     try {
         const { classId } = req.params;
         let { session: sParam, year: yParam } = req.query;
-        
+
         // Fetch school for default session info
         const school = await prisma.school.findFirst({
             where: { Renamedclass: { some: { id: parseInt(classId) } } },
@@ -260,7 +254,7 @@ router.get('/class/:classId/session-report', async (req, res) => {
         const { session, year, startDate, endDate } = currentInfo;
 
         const students = await prisma.student.findMany({
-            where: { 
+            where: {
                 classId: parseInt(classId),
                 isApproved: true
             },
@@ -474,9 +468,9 @@ router.get('/student/:studentId/monthly-performance', async (req, res) => {
     try {
         const { studentId } = req.params;
         const { month, year, calendar } = req.query; // month: 0-11, calendar: ENGLISH|NEPALI
-        
+
         console.log(`[DEBUG] Monthly Performance Enhanced Hit for studentId: ${studentId}, Month: ${month}, Year: ${year}, Cal: ${calendar}`);
-        
+
         const student = await prisma.student.findUnique({
             where: { id: parseInt(studentId) },
             include: { school: true, user: true }
@@ -488,7 +482,7 @@ router.get('/student/:studentId/monthly-performance', async (req, res) => {
         const selectedMonth = parseInt(month);
 
         let activeSession = student.school?.activePerformanceSession || "1st Session";
-        
+
         // FALLBACK LOGIC
         const currentTermPrefix = activeSession.split(' ')[0];
         const currentCheck = await prisma.schoolexampublish.findFirst({
@@ -514,7 +508,7 @@ router.get('/student/:studentId/monthly-performance', async (req, res) => {
                 if (!year) activeYear = lastCompleted.publishedAt?.getFullYear() || activeYear;
             }
         }
-        
+
         // Date Range Logic
         let startDate, endDate;
         if (calendar === 'NEPALI') {
@@ -602,7 +596,7 @@ router.get('/student/:studentId/terminal-marks', async (req, res) => {
         if (!terminal) return res.status(400).json({ error: "Terminal parameter required" });
 
         const marks = await prisma.exammark.findMany({
-            where: { 
+            where: {
                 studentId: parseInt(studentId),
                 examTerminal: terminal
             },
@@ -647,7 +641,7 @@ router.get('/profile', async (req, res) => {
 
         const classMap = new Map();
         if (classHead) classMap.set(classHead.id, classHead);
-        
+
         (teacher.Renamedclass_classteachers || []).forEach(c => classMap.set(c.id, c));
 
         // Session info
@@ -925,7 +919,7 @@ router.get('/student/:studentId/performance', async (req, res) => {
         });
 
         const { getSessionDateRange, getNextSession } = require('../admin/sessionDates');
-        
+
         let activeSession = qSession || school?.activePerformanceSession || "1st Session";
         let activeYear = qYear ? parseInt(qYear) : (school?.activePerformanceYear || 2026);
 
@@ -986,11 +980,11 @@ router.get('/student/:studentId/performance', async (req, res) => {
             select: { session: true, sessionYear: true, performanceTotal: true, potentialTotal: true, effortTotal: true, curiosityQuiz: true, learningSpeed: true }
         });
         const performanceTrendline = allMetrics.filter(m => m.performanceTotal != null).map(m => ({ label: m.session, score: round1(m.performanceTotal) }));
-        const potentialTrendline = allMetrics.filter(m => m.potentialTotal != null || m.effortTotal != null).map(m => ({ label: m.session, score: round1(m.potentialTotal ?? ((m.effortTotal||0) + (m.curiosityQuiz||0) + (m.learningSpeed||0))) }));
+        const potentialTrendline = allMetrics.filter(m => m.potentialTotal != null || m.effortTotal != null).map(m => ({ label: m.session, score: round1(m.potentialTotal ?? ((m.effortTotal || 0) + (m.curiosityQuiz || 0) + (m.learningSpeed || 0))) }));
 
         if (preCalc && preCalc.performanceTotal != null) {
             // ── Use pre-calculated data from potentialmetric ──
-            const pot = preCalc.potentialTotal ?? ((preCalc.effortTotal||0) + (preCalc.curiosityQuiz||0) + (preCalc.learningSpeed||0));
+            const pot = preCalc.potentialTotal ?? ((preCalc.effortTotal || 0) + (preCalc.curiosityQuiz || 0) + (preCalc.learningSpeed || 0));
             res.json({
                 ok: true,
                 data: {
@@ -999,9 +993,9 @@ router.get('/student/:studentId/performance', async (req, res) => {
                         class: `${studentData.Renamedclass?.name || ''} ${studentData.Renamedclass?.section || ''}`.trim(),
                         classId: studentData.classId
                     },
-                    exam: { value: preCalc.examScore || 0, display: `${(preCalc.examScore||0).toFixed(1)} / 25` },
-                    assignment: { value: preCalc.assignmentScore || 0, display: `${(preCalc.assignmentScore||0).toFixed(1)} / 30` },
-                    attendance: { value: preCalc.attendanceScore || 0, display: `${(preCalc.attendanceScore||0).toFixed(1)} / 20` },
+                    exam: { value: preCalc.examScore || 0, display: `${(preCalc.examScore || 0).toFixed(1)} / 25` },
+                    assignment: { value: preCalc.assignmentScore || 0, display: `${(preCalc.assignmentScore || 0).toFixed(1)} / 30` },
+                    attendance: { value: preCalc.attendanceScore || 0, display: `${(preCalc.attendanceScore || 0).toFixed(1)} / 20` },
                     finalPerformance: preCalc.performanceTotal || 0,
                     performance: {
                         assignment: preCalc.assignmentScore || 0,
@@ -1190,21 +1184,21 @@ router.post('/student/:studentId/potential', allowRoles('TEACHER', 'ADMIN'), asy
             if (student && student.parent.length > 0) {
                 const studentName = `${student.user.firstName} ${student.user.lastName}`;
                 for (const parent of student.parent) {
-                /* 
-                    await sendPerformanceReportEmail(
-                        parent.email,
-                        `${parent.firstName} ${parent.lastName}`,
-                        studentName,
-                        {
-                            effort: eVal,
-                            curiosity: cVal,
-                            learningSpeed: lVal,
-                            session: activeSession,
-                            year: activeYear
-                        },
-                        studentData.schoolId // Pass schoolId
-                    );
-                    */
+                    /* 
+                        await sendPerformanceReportEmail(
+                            parent.email,
+                            `${parent.firstName} ${parent.lastName}`,
+                            studentName,
+                            {
+                                effort: eVal,
+                                curiosity: cVal,
+                                learningSpeed: lVal,
+                                session: activeSession,
+                                year: activeYear
+                            },
+                            studentData.schoolId // Pass schoolId
+                        );
+                        */
                 }
             }
         } catch (emailErr) {
@@ -1376,7 +1370,7 @@ router.post('/class/:classId/done', allowRoles('TEACHER'), async (req, res) => {
 
         // 1. Notify Parents
         const students = await prisma.student.findMany({
-            where: { 
+            where: {
                 classId: parseInt(classId),
                 isApproved: true
             },
@@ -1440,22 +1434,22 @@ router.post('/class/:classId/done', allowRoles('TEACHER'), async (req, res) => {
             for (const p of parentInfo) {
                 // Email
                 try {
-                /* 
-                    await sendFinalSessionReportEmail(
-                        p.email,
-                        `${p.firstName} ${p.lastName}`,
-                        `${student.user.firstName} ${student.user.lastName}`,
-                        {
-                            session: sessionName,
-                            year: 2026,
-                            totalPercentage: totalPercentage,
-                            attendancePercentage: attendancePct,
-                            examAverage: examAvg,
-                            teacherName: teacherName
-                        },
-                        teacher.schoolId // Pass schoolId
-                    );
-                    */
+                    /* 
+                        await sendFinalSessionReportEmail(
+                            p.email,
+                            `${p.firstName} ${p.lastName}`,
+                            `${student.user.firstName} ${student.user.lastName}`,
+                            {
+                                session: sessionName,
+                                year: 2026,
+                                totalPercentage: totalPercentage,
+                                attendancePercentage: attendancePct,
+                                examAverage: examAvg,
+                                teacherName: teacherName
+                            },
+                            teacher.schoolId // Pass schoolId
+                        );
+                        */
                 } catch (emailErr) {
                     console.error(`Email error for student ${student.id}:`, emailErr.message);
                 }
@@ -1531,10 +1525,10 @@ router.get('/class/:classId/students', async (req, res) => {
 router.get('/class/:classId/all-students', async (req, res) => {
     try {
         const { classId } = req.params;
-        
+
         // Fetch students
         const students = await prisma.student.findMany({
-            where: { 
+            where: {
                 classId: parseInt(classId),
                 schoolId: teacher.schoolId // FIX: Ensure isolation
             },
@@ -1571,8 +1565,8 @@ router.get('/class/:classId/all-students', async (req, res) => {
             }
         }
 
-        res.json({ 
-            ok: true, 
+        res.json({
+            ok: true,
             data: students,
             classTeacher: classTeacherName,
             classDetails: {
@@ -1608,7 +1602,7 @@ router.get('/student/approvals', async (req, res) => {
 
         const validClassIds = Array.from(classIds).filter(id => !isNaN(parseInt(id)));
         if (validClassIds.length === 0) {
-             return res.json({ ok: true, data: [] });
+            return res.json({ ok: true, data: [] });
         }
 
         const pendingStudents = await prisma.student.findMany({
@@ -1643,7 +1637,7 @@ router.post('/student/approval/:studentId', async (req, res) => {
     try {
         const { studentId } = req.params;
         const { action } = req.body; // 'APPROVE' or 'REJECT'
-        
+
         const teacher = await getValidatedTeacher(req, res);
         if (!teacher) return;
 
@@ -1676,31 +1670,31 @@ router.post('/student/approval/:studentId', async (req, res) => {
             const currentName = student.Renamedclass?.name;
             const currentSection = student.Renamedclass?.section;
             const currentLevel = parseInt(currentName);
-            
+
             if (isNaN(currentLevel)) return res.status(400).json({ error: "Invalid class level for promotion" });
-            
+
             const nextLevel = currentLevel + 1;
             const nextClassName = nextLevel.toString();
-            
+
             const nextClass = await prisma.renamedclass.findFirst({
                 where: { name: nextClassName, section: currentSection, schoolId: teacher.schoolId }
             });
-            
+
             if (!nextClass) return res.status(404).json({ error: `Next class (${nextClassName}${currentSection}) not found.` });
-            
+
             const schoolConfig = await prisma.school.findUnique({
                 where: { id: teacher.schoolId },
                 select: { activePerformanceYear: true }
             });
             const promoYear = (schoolConfig?.activePerformanceYear || new Date().getFullYear()) + 1;
-            
+
             await prisma.$transaction([
                 prisma.student.update({
                     where: { id: student.id },
-                    data: { 
-                        classId: nextClass.id, 
-                        isApproved: true, 
-                        promotionStatus: 'PROMOTED' 
+                    data: {
+                        classId: nextClass.id,
+                        isApproved: true,
+                        promotionStatus: 'PROMOTED'
                     }
                 }),
                 prisma.enrollment.upsert({
@@ -1726,9 +1720,9 @@ router.post('/student/approval/:studentId', async (req, res) => {
             await prisma.$transaction([
                 prisma.student.update({
                     where: { id: student.id },
-                    data: { 
-                        isApproved: true, 
-                        promotionStatus: 'RETAINED' 
+                    data: {
+                        isApproved: true,
+                        promotionStatus: 'RETAINED'
                     }
                 }),
                 prisma.enrollment.upsert({
@@ -1776,10 +1770,10 @@ router.get('/exam-marks/query', async (req, res) => {
 
         const cid = parseInt(classId);
         const sid = subjectId ? parseInt(subjectId) : null;
-        
+
         const isClassTeacher = (teacher.Renamedclass_classteachers || []).some(c => c.id === cid) ||
-                              teacher.Renamedclass_Renamedclass_classHeadIdToteacher?.id === cid;
-        
+            teacher.Renamedclass_Renamedclass_classHeadIdToteacher?.id === cid;
+
         const isSubjectTeacher = sid ? (teacher.teachersubject || []).some(ts => ts.classId === cid && ts.subjectId === sid) : false;
 
         if (!isClassTeacher && !isSubjectTeacher && req.user.role !== 'ADMIN') {
@@ -1790,7 +1784,7 @@ router.get('/exam-marks/query', async (req, res) => {
         if (sid) {
             marks = await prisma.exammark.findMany({
                 where: {
-                    student: { 
+                    student: {
                         classId: cid,
                         isApproved: true
                     },
@@ -1841,7 +1835,7 @@ router.get('/exam-marks/query', async (req, res) => {
                 where: { classId: cid },
                 include: { subject: { select: { name: true } }, teacher: { include: { user: { select: { firstName: true, lastName: true } } } } }
             });
-            
+
             const submissions = await prisma.subjectexamsubmission.findMany({
                 where: { classId: cid, examTerminal: examTerminal }
             });
@@ -1858,8 +1852,8 @@ router.get('/exam-marks/query', async (req, res) => {
             });
         }
 
-        res.json({ 
-            ok: true, 
+        res.json({
+            ok: true,
             data: marks,
             isSubjectSubmitted: !!subjectSubmission,
             isClassSubmitted: !!classSubmission,
@@ -1915,14 +1909,14 @@ router.post('/notifications/read-exams', async (req, res) => {
 // Submit Exam Marks
 router.post('/exam-marks', async (req, res) => {
     try {
-        const { 
-            classId, 
-            subjectId, 
-            examTerminal, 
-            marks, 
-            theoryPassMarks, 
-            theoryFullMarks, 
-            practicalPassMarks, 
+        const {
+            classId,
+            subjectId,
+            examTerminal,
+            marks,
+            theoryPassMarks,
+            theoryFullMarks,
+            practicalPassMarks,
             practicalFullMarks,
             totalPassMarks,
             totalFullMarks
@@ -2230,15 +2224,15 @@ router.get('/analytics/performance-potential', async (req, res) => {
 
         const counts = {
             starPerformer: withData.filter(d => d.performance >= 0 && d.potential >= 20).length,
-            risingStars:   withData.filter(d => d.performance < 0  && d.potential >= 20).length,
-            consistent:    withData.filter(d => d.performance >= 0 && d.potential < 20).length,
-            needsSupport:  withData.filter(d => d.performance < 0  && d.potential < 20).length,
-            noData:        noDataCount
+            risingStars: withData.filter(d => d.performance < 0 && d.potential >= 20).length,
+            consistent: withData.filter(d => d.performance >= 0 && d.potential < 20).length,
+            needsSupport: withData.filter(d => d.performance < 0 && d.potential < 20).length,
+            noData: noDataCount
         };
 
         const classAvg = withData.length > 0 ? {
             performance: parseFloat((withData.reduce((s, d) => s + d.performance, 0) / withData.length).toFixed(1)),
-            potential:   parseFloat((withData.reduce((s, d) => s + d.potential, 0) / withData.length).toFixed(1))
+            potential: parseFloat((withData.reduce((s, d) => s + d.potential, 0) / withData.length).toFixed(1))
         } : null;
 
         res.json({ ok: true, data, counts, classAvg, session: sessionName });
@@ -2261,8 +2255,8 @@ router.get('/analytics/trendline', async (req, res) => {
         if (requestedClassId && !isNaN(requestedClassId)) {
             // Permission check for the requested class
             const hasAccess = (teacher.Renamedclass_classteachers || []).some(c => c.id === requestedClassId) ||
-                             (teacher.teachersubject || []).some(s => s.classId === requestedClassId) ||
-                             teacher.Renamedclass_Renamedclass_classHeadIdToteacher?.id === requestedClassId;
+                (teacher.teachersubject || []).some(s => s.classId === requestedClassId) ||
+                teacher.Renamedclass_Renamedclass_classHeadIdToteacher?.id === requestedClassId;
             if (hasAccess) {
                 classIds.add(requestedClassId);
             } else {
@@ -2297,7 +2291,7 @@ router.get('/analytics/trendline', async (req, res) => {
             let avgPerf = 0;
             if (isCalculated) {
                 const marksQuery = {
-                    student: { 
+                    student: {
                         classId: { in: classesArray },
                         schoolId: teacher.schoolId // FIX: Ensure isolation
                     },
@@ -2311,7 +2305,7 @@ router.get('/analytics/trendline', async (req, res) => {
                     where: marksQuery,
                     select: { marks: true, fullMarks: true }
                 });
-                
+
                 if (marks.length > 0) {
                     const totalPct = marks.reduce((sum, m) => sum + (m.marks / (m.fullMarks || 100)) * 100, 0);
                     avgPerf = totalPct / marks.length;
@@ -2364,7 +2358,7 @@ router.get('/students-with-parents', async (req, res) => {
         }
 
         const students = await prisma.student.findMany({
-            where: { 
+            where: {
                 classId: { in: classesArray },
                 schoolId: teacher.schoolId // FIX: Ensure isolation
             },

@@ -3,7 +3,6 @@ const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const fs = require('fs');
 
 const prisma = new PrismaClient();
 
@@ -15,8 +14,7 @@ router.post('/', async (req, res) => {
       usernameOrCode = usernameOrCode.trim().toLowerCase();
     }
 
-    const logData = `\n[${new Date().toISOString()}] Login Attempt:\nUser: '${usernameOrCode}'\nPass Length: ${password ? password.length : 0}\n`;
-    fs.appendFileSync('login_debug.log', logData);
+    console.log(`[LOGIN] Attempt: user='${usernameOrCode}', passLen=${password ? password.length : 0}`);
 
 
     try {
@@ -65,40 +63,39 @@ router.post('/', async (req, res) => {
     });
 
     if (!user) {
-      const errorMsg = `User NOT FOUND [${usernameOrCode}]`;
-      fs.appendFileSync('login_debug.log', `Status: ${errorMsg}\n`);
+      console.log(`[LOGIN] User not found: '${usernameOrCode}'`);
       return res.status(401).json({
         error: 'Invalid credentials'
       });
     }
 
     let schoolId = null;
-let targetSchool = null;
+    let targetSchool = null;
 
-switch (user.role) {
-  case 'ADMIN':
-    schoolId = user.school_school_adminIdTouser?.id;
-    targetSchool = user.school_school_adminIdTouser;
-    break;
+    switch (user.role) {
+      case 'ADMIN':
+        schoolId = user.school_school_adminIdTouser?.id;
+        targetSchool = user.school_school_adminIdTouser;
+        break;
 
-  case 'TEACHER':
-    schoolId = user.teacher?.schoolId;
-    break;
+      case 'TEACHER':
+        schoolId = user.teacher?.schoolId;
+        break;
 
-  case 'STUDENT':
-    schoolId = user.student?.schoolId;
-    break;
+      case 'STUDENT':
+        schoolId = user.student?.schoolId;
+        break;
 
-  case 'PARENT':
-    schoolId = user.parent?.schoolId;
-    break;
-}
+      case 'PARENT':
+        schoolId = user.parent?.schoolId;
+        break;
+    }
 
-if (schoolId) {
-  targetSchool = await prisma.school.findUnique({
-    where: { id: schoolId }
-  });
-}
+    if (schoolId) {
+      targetSchool = await prisma.school.findUnique({
+        where: { id: schoolId }
+      });
+    }
 
 
     if (user.lockoutUntil && new Date() < user.lockoutUntil) {
@@ -126,7 +123,7 @@ if (schoolId) {
         }
       });
 
-      fs.appendFileSync('login_debug.log', `Status: Password MISMATCH [User: ${user.username}, Input Length: ${password.length}, Attempts: ${newFailedAttempts}]\n`);
+      console.log(`[LOGIN] Password mismatch for user '${user.username}', attempts=${newFailedAttempts}`);
       return res.status(401).json({
         error: 'Invalid credentials'
       });
@@ -157,26 +154,26 @@ if (schoolId) {
         const teacherStatus = (user.teacher?.status || 'PENDING').toString().toUpperCase();
 
         if (teacherStatus === 'PENDING') {
-          return res.status(403).json({ 
+          return res.status(403).json({
             error: 'Your registration is yet to be verified by admin. Please wait for approval.',
             status: 'PENDING'
           });
         }
 
         if (teacherStatus === 'REJECTED') {
-          return res.status(403).json({ 
+          return res.status(403).json({
             error: 'Your registration has been rejected by the admin. Please contact the respective management.',
             status: 'REJECTED'
           });
         }
 
-          if (targetSchool?.adminId)  {
-        
+        if (targetSchool?.adminId) {
+
           const directClasses = user.teacher?.Renamedclass_classteachers || [];
           const subjectClasses = user.teacher?.teachersubject?.map(ts => ts.Renamedclass).filter(Boolean) || [];
 
           const allClasses = [...directClasses, ...subjectClasses];
-      
+
           const uniqueClasses = Array.from(new Map(allClasses.map(item => [item.id, item])).values());
 
           const classNames = uniqueClasses.length > 0
@@ -199,58 +196,58 @@ if (schoolId) {
 
       case 'STUDENT':
         if (!user.student.isApproved) {
-          return res.status(403).json({ 
+          return res.status(403).json({
             error: "Your account is pending approval by your Class Head. Please contact them or wait for verification.",
             status: 'PENDING'
           });
         }
         break;
-        case 'PARENT':
+      case 'PARENT':
 
-          if (user.parent) {
+        if (user.parent) {
 
           const children = await prisma.student.findMany({
-          where: {
-            parent: {
-            some: {
-            id: user.parent.id
-                   }
+            where: {
+              parent: {
+                some: {
+                  id: user.parent.id
                 }
-         },
-      include: { Renamedclass: true }
-    });
+              }
+            },
+            include: { Renamedclass: true }
+          });
 
-    user.students = children.map(s => ({
-      id: s.id,
-      name: `${s.firstName} ${s.lastName}`,
-      studentCode: s.studentCode,
-      className: s.Renamedclass
-        ? `${s.Renamedclass.name}${s.Renamedclass.section}`
-        : 'N/A'
-    }));
+          user.students = children.map(s => ({
+            id: s.id,
+            name: `${s.firstName} ${s.lastName}`,
+            studentCode: s.studentCode,
+            className: s.Renamedclass
+              ? `${s.Renamedclass.name}${s.Renamedclass.section}`
+              : 'N/A'
+          }));
 
-  } else {
-    user.students = [];
-  }
+        } else {
+          user.students = [];
+        }
 
-  break;
+        break;
 
       default:
         return res.status(403).json({ error: 'Invalid role' });
     }
 
-const token = jwt.sign(
-  {
-    userId: user.id,
-    role: user.role,
-    schoolId: schoolId || null,
-    studentId: user.student?.id || null,
-    teacherId: user.teacher?.id || null,
-    parentId: user.parent?.id || null
-  },
-  process.env.JWT_SECRET || 'devsecret',
-  { expiresIn: '7d' }
-);
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        role: user.role,
+        schoolId: schoolId || null,
+        studentId: user.student?.id || null,
+        teacherId: user.teacher?.id || null,
+        parentId: user.parent?.id || null
+      },
+      process.env.JWT_SECRET || 'devsecret',
+      { expiresIn: '7d' }
+    );
 
     res.json({
       ok: true,
