@@ -6,7 +6,7 @@ import api, { studentService } from '../services/api';
 import AssignmentPortal from './AssignmentPortal';
 import GradeSheetView from '../components/GradeSheetView';
 import toast from 'react-hot-toast';
-const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4008';
+const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:4008';
 import { Card, Badge } from "../components/ui/Shared";
 
 
@@ -672,8 +672,8 @@ export default function StudentDashboard() {
                     <button
                         onClick={() => setActiveTab('overview')}
                         className={`px-4 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-widest transition-all duration-300 ${activeTab === 'overview'
-                                ? 'bg-white text-[#052e16] shadow-sm'
-                                : 'text-white/60 hover:text-white hover:bg-white/5'
+                            ? 'bg-white text-[#052e16] shadow-sm'
+                            : 'text-white/60 hover:text-white hover:bg-white/5'
                             }`}
                     >
                         Overview
@@ -681,8 +681,8 @@ export default function StudentDashboard() {
                     <button
                         onClick={() => setActiveTab('materials')}
                         className={`px-4 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-widest transition-all duration-300 ${activeTab === 'materials'
-                                ? 'bg-white text-[#052e16] shadow-sm'
-                                : 'text-white/60 hover:text-white hover:bg-white/5'
+                            ? 'bg-white text-[#052e16] shadow-sm'
+                            : 'text-white/60 hover:text-white hover:bg-white/5'
                             }`}
                     >
                         Materials
@@ -690,8 +690,8 @@ export default function StudentDashboard() {
                     <button
                         onClick={() => setActiveTab('assignments')}
                         className={`px-4 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-widest transition-all duration-300 ${activeTab === 'assignments'
-                                ? 'bg-white text-[#052e16] shadow-sm'
-                                : 'text-white/60 hover:text-white hover:bg-white/5'
+                            ? 'bg-white text-[#052e16] shadow-sm'
+                            : 'text-white/60 hover:text-white hover:bg-white/5'
                             }`}
                     >
                         Assignments
@@ -699,8 +699,8 @@ export default function StudentDashboard() {
                     <button
                         onClick={() => setActiveTab('ratings')}
                         className={`px-4 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-widest transition-all duration-300 ${activeTab === 'ratings'
-                                ? 'bg-white text-[#052e16] shadow-sm'
-                                : 'text-white/60 hover:text-white hover:bg-white/5'
+                            ? 'bg-white text-[#052e16] shadow-sm'
+                            : 'text-white/60 hover:text-white hover:bg-white/5'
                             }`}
                     >
                         Ratings
@@ -708,8 +708,8 @@ export default function StudentDashboard() {
                     <button
                         onClick={() => setActiveTab('results')}
                         className={`px-4 py-1.5 rounded-lg text-[10px] font-medium uppercase tracking-widest transition-all duration-300 ${activeTab === 'results'
-                                ? 'bg-white text-[#052e16] shadow-sm'
-                                : 'text-white/60 hover:text-white hover:bg-white/5'
+                            ? 'bg-white text-[#052e16] shadow-sm'
+                            : 'text-white/60 hover:text-white hover:bg-white/5'
                             }`}
                     >
                         Results
@@ -764,9 +764,9 @@ export default function StudentDashboard() {
                                                     >
                                                         <div className="flex items-start gap-3">
                                                             <div className={`mt-2.5 w-1.5 h-1.5 rounded-full flex-shrink-0 ${notif.type === 'RESULT_PUBLISHED' ? 'bg-green-950' :
-                                                                    notif.type === 'pending_assignment' ? 'bg-amber-500' :
-                                                                        notif.type === 'new_grade' ? 'bg-green-950' :
-                                                                            'bg-blue-500'
+                                                                notif.type === 'pending_assignment' ? 'bg-amber-500' :
+                                                                    notif.type === 'new_grade' ? 'bg-green-950' :
+                                                                        'bg-blue-500'
                                                                 }`} />
                                                             <div className="flex-1 min-w-0">
                                                                 <h4 className="font-medium text-xs text-slate-800 truncate">{notif.title || notif.message}</h4>
@@ -840,8 +840,8 @@ export default function StudentDashboard() {
                                                 </div>
                                             )}
                                             <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[8px] font-medium uppercase tracking-wider text-white ${todayAttendance === 'P' ? 'bg-green-950' :
-                                                    todayAttendance === 'H' ? 'bg-amber-600' :
-                                                        'bg-slate-500'
+                                                todayAttendance === 'H' ? 'bg-amber-600' :
+                                                    'bg-slate-500'
                                                 }`}>
                                                 <div className={`w-1 h-1 rounded-full ${todayAttendance === 'P' ? 'bg-green-400' : todayAttendance === 'H' ? 'bg-amber-300' : 'bg-white/40'}`} />
                                                 {todayAttendance === 'P' ? 'Present today' : todayAttendance === 'H' ? 'Holiday' : 'Attendance N/A'}
@@ -962,8 +962,8 @@ export default function StudentDashboard() {
                                                             </td>
                                                             <td className="px-6 py-2.5 text-right">
                                                                 <span className={`inline-flex items-center px-2 py-0.5 rounded text-[8px] font-medium uppercase tracking-wider text-white ${isPresent ? 'bg-green-950' :
-                                                                        isHoliday ? 'bg-amber-600' :
-                                                                            'bg-red-900'
+                                                                    isHoliday ? 'bg-amber-600' :
+                                                                        'bg-red-900'
                                                                     }`}>
                                                                     {isPresent ? 'Present' : isHoliday ? 'Holiday' : 'Absent'}
                                                                 </span>
@@ -1210,8 +1210,8 @@ export default function StudentDashboard() {
                                             key={t.terminal}
                                             onClick={() => setSelectedResultTerminal(t.terminal)}
                                             className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${selectedResultTerminal === t.terminal
-                                                    ? 'bg-[#052e16] text-white border-[#052e16] shadow'
-                                                    : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
+                                                ? 'bg-[#052e16] text-white border-[#052e16] shadow'
+                                                : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
                                                 }`}
                                         >
                                             {t.terminal}
@@ -1452,8 +1452,8 @@ export default function StudentDashboard() {
                                                                                 key={optIdx}
                                                                                 onClick={() => setQuizAnswers(prev => ({ ...prev, [q.id]: opt }))}
                                                                                 className={`text-left px-3 py-2 rounded-lg border-2 transition-all group ${quizAnswers[q.id] === opt
-                                                                                        ? "border-green-950 bg-green-50 text-green-950 shadow-md ring-1 ring-green-950/10"
-                                                                                        : "border-slate-50 bg-white text-slate-600 hover:border-emerald-200 hover:bg-emerald-50/5"
+                                                                                    ? "border-green-950 bg-green-50 text-green-950 shadow-md ring-1 ring-green-950/10"
+                                                                                    : "border-slate-50 bg-white text-slate-600 hover:border-emerald-200 hover:bg-emerald-50/5"
                                                                                     }`}
                                                                             >
                                                                                 <div className="flex items-center gap-2">
@@ -1651,8 +1651,8 @@ export default function StudentDashboard() {
                     data-testid="promotion-modal"
                     data-promotion-variant={statusInfo.isPromoted ? 'promoted' : 'retained'}
                     className={`fixed inset-0 z-[100] backdrop-blur-md flex items-center justify-center p-6 animate-fade-in ${statusInfo.isPromoted
-                            ? 'bg-gradient-to-br from-emerald-900/60 via-slate-900/70 to-green-900/60'
-                            : 'bg-gradient-to-br from-amber-900/60 via-slate-900/70 to-orange-900/60'
+                        ? 'bg-gradient-to-br from-emerald-900/60 via-slate-900/70 to-green-900/60'
+                        : 'bg-gradient-to-br from-amber-900/60 via-slate-900/70 to-orange-900/60'
                         }`}
                     role="dialog"
                     aria-modal="true"
@@ -1666,8 +1666,8 @@ export default function StudentDashboard() {
 
                         <div className="relative px-8 pt-10 pb-6 text-center">
                             <div className={`mx-auto w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg mb-5 ${statusInfo.isPromoted
-                                    ? 'bg-gradient-to-br from-emerald-500 to-green-600 shadow-emerald-500/30'
-                                    : 'bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/30'
+                                ? 'bg-gradient-to-br from-emerald-500 to-green-600 shadow-emerald-500/30'
+                                : 'bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/30'
                                 }`}>
                                 {statusInfo.isPromoted
                                     ? <Award className="text-white" size={32} />
@@ -1739,8 +1739,8 @@ export default function StudentDashboard() {
                                 onClick={handleAcknowledgeStatus}
                                 disabled={acknowledgingStatus}
                                 className={`w-full py-3 text-white text-sm font-semibold rounded-2xl shadow-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed ${statusInfo.isPromoted
-                                        ? 'bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 shadow-emerald-500/30 hover:shadow-emerald-500/50'
-                                        : 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 shadow-amber-500/30 hover:shadow-amber-500/50'
+                                    ? 'bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 shadow-emerald-500/30 hover:shadow-emerald-500/50'
+                                    : 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 shadow-amber-500/30 hover:shadow-amber-500/50'
                                     }`}
                             >
                                 {acknowledgingStatus ? 'Saving…' : 'Continue to my dashboard'}

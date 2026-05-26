@@ -58,7 +58,7 @@ export default function Login() {
 
   const handleGoogleLogin = async (credentialResponse) => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/api/auth/google`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/auth/google`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

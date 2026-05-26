@@ -3,7 +3,7 @@ import { Send, X, User, MessageSquare, Clock, CheckCircle, Paperclip, FileText, 
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
-const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4008';
+const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:4008';
 
 function parseFileUrl(raw) {
     if (!raw) return null;
@@ -201,8 +201,8 @@ export default function ParentChatInterface({ onClose }) {
                                             target="_blank"
                                             rel="noreferrer"
                                             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${isMe
-                                                    ? 'bg-white/10 hover:bg-white/20 text-white'
-                                                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
+                                                ? 'bg-white/10 hover:bg-white/20 text-white'
+                                                : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
                                                 }`}
                                         >
                                             <FileText size={13} className="shrink-0" />

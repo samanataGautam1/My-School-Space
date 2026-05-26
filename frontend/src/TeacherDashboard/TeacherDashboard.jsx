@@ -19,7 +19,7 @@ import { BarChart2, CheckCircle, Clock as ClockIcon, XCircle, AlertCircle, LineC
 import AttendancePage from './AttendancePage';
 import StudentAnalysisView from './StudentAnalysisView';
 import ClassTrendlineView from './ClassTrendlineView';
-const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4008';
+const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:4008';
 
 export default function TeacherDashboard() {
     const { currentUser, logout, loading: authLoading } = useAuth();
@@ -2150,8 +2150,8 @@ export default function TeacherDashboard() {
                                     <button
                                         onClick={() => toggleAssignmentClose(selectedAssignment.id)}
                                         className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${selectedAssignment.isClosed
-                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'
-                                                : 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100'
+                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'
+                                            : 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100'
                                             }`}
                                     >
                                         {selectedAssignment.isClosed ? 'Open Assignment' : 'Close Assignment'}
