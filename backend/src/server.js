@@ -54,7 +54,10 @@ app.use('/api/school-code', limiter);
 // CORS
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:3000', 'http://127.0.0.1:3000'];
+  : [
+    "http://localhost:5173",
+    "https://my-school-space.vercel.app"
+  ];
 
 app.use(cors({
   origin: (origin, callback) => {
