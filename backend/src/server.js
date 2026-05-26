@@ -64,7 +64,8 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      console.warn(`[CORS] Blocked request from unauthorized origin: ${origin}`);
+      callback(null, false);
     }
   },
   credentials: true,
@@ -73,8 +74,14 @@ app.use(cors({
 }));
 
 /* ================= HEALTH CHECK (JSON) ================= */
-app.get('/health', (req, res) => {
-  res.json({ ok: true, message: 'Server is running' });
+app.get('/health', async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ ok: true, message: 'Server is running', database: 'connected' });
+  } catch (err) {
+    console.error('DB Health Check Failed:', err);
+    res.status(500).json({ ok: false, message: 'Server is running', database: 'disconnected', error: err.message });
+  }
 });
 
 app.get('/debug-student', async (req, res) => {
