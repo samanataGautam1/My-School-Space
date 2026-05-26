@@ -54,29 +54,27 @@ app.use('/api/login', limiter);
 app.use('/api/signup', limiter);
 app.use('/api/school-code', limiter);
 
-// CORS
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : [
-    "http://localhost:5173",
-    "https://my-school-space.vercel.app"
-  ];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://my-school-space.vercel.app"
+];
 
+// CORS middleware
 app.use(cors({
   origin: function (origin, callback) {
-    const allowedOrigins = process.env.ALLOWED_ORIGINS
-      ? process.env.ALLOWED_ORIGINS.split(',')
-      : ["http://localhost:5173", "https://my-school-space.vercel.app"];
+    // allow tools like Postman
+    if (!origin) return callback(null, true);
 
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
 
-    return callback(null, false); 
+    return callback(new Error("Not allowed by CORS: " + origin));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200
 }));
 
 /* ================= HEALTH CHECK (JSON) ================= */
