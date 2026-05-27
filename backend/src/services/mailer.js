@@ -57,11 +57,14 @@ async function sendResetEmail(to, code, name) {
     });
 }
 
-async function sendWelcomeEmail(to, name) {
+async function sendWelcomeEmail(to, name, schoolId) {
     return sendEmail({
         to,
         subject: "Welcome to School Space",
-        html: `<h2>Welcome ${name} 🎉</h2>`,
+        html: `
+            <h2>Welcome ${name} 🎉</h2>
+            <p>School ID: ${schoolId || "N/A"}</p>
+        `,
     });
 }
 

@@ -46,7 +46,7 @@ export default function VerifyEmail() {
         setLoading(true);
 
         try {
-            const response = await fetch("/api/verify/email", {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/verify/email`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, code }),
@@ -57,24 +57,16 @@ export default function VerifyEmail() {
             if (response.ok) {
                 setSuccess(data.message);
 
-                if (data.token && data.user) {
-                    loginAfterVerification(data.user, data.token);
+                if (response.ok) {
+    setSuccess(data.message);
 
-                    const roleMap = {
-                        'ADMIN': '/dashboard/admin',
-                        'TEACHER': '/dashboard/teacher',
-                        'STUDENT': '/student-welcome',
-                        'PARENT': '/dashboard/parent',
-                    };
-
-                    setTimeout(() => {
-                        navigate(roleMap[data.user.role] || '/');
-                    }, 1500);
-                } else {
-                    setTimeout(() => {
-                        navigate("/login");
-                    }, 2000);
-                }
+    setTimeout(() => {
+        navigate("/login");
+    }, 1500);
+} else {
+    setError(data.error || "Verification failed");
+    setLoading(false);
+}
             } else {
                 setError(data.error || "Verification failed");
                 setLoading(false);
