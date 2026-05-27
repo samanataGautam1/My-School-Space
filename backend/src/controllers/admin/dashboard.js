@@ -1521,13 +1521,7 @@ router.post('/publish-terminal', async (req, res) => {
 
     // 3. Fetch Data for Grade Sheets
     const students = await prisma.student.findMany({
-      where: {
-        schoolId,
-        OR: [
-          { isApproved: true },
-          { promotionStatus: 'PENDING' }
-        ]
-      },
+      where: { schoolId, isApproved: true },
       include: {
         Renamedclass: true,
         parent: { include: { user: true } },
@@ -2396,31 +2390,10 @@ router.post('/end-session', async (req, res) => {
       const promoYear = newYear;
       const allClasses = await prisma.renamedclass.findMany({ where: { schoolId } });
 
-      // ── Bulk Cleanup for all active students (Fresh start for next year) ──
-      // 1. Delete all session-specific student data scoped to this school
-      await prisma.submission.deleteMany({ where: { student: { schoolId } } });
-      await prisma.studentmaterialstatus.deleteMany({ where: { student: { schoolId } } });
-      await prisma.quizresponse.deleteMany({ where: { student: { schoolId } } });
-      await prisma.attendance.deleteMany({ where: { student: { schoolId } } });
-      await prisma.exammark.deleteMany({ where: { student: { schoolId } } });
-      await prisma.potentialmetric.deleteMany({ where: { student: { schoolId } } });
-
-      // 2. Delete class-level data (Cascades will handle child records)
-      await prisma.assignment.deleteMany({ where: { Renamedclass: { schoolId } } });
-      await prisma.studymaterial.deleteMany({ where: { Renamedclass: { schoolId } } });
-
-      // 3. Clear session tracking/publishing records
-      await prisma.schoolexampublish.deleteMany({ where: { schoolId } });
-      await prisma.classexamsubmission.deleteMany({ where: { Renamedclass: { schoolId } } });
-      await prisma.sessioncompletion.deleteMany({ where: { schoolId } });
-
-      const processedIds = [];
-      const parentNotifications = [];
-
-      // 1. Handle PROMOTED Class 1-9 students (move to next class)
+      // Move PROMOTED Class 1-9 students to their next class
       const promotedStudents = await prisma.student.findMany({
         where: { schoolId, promotionStatus: 'PROMOTED' },
-        include: { Renamedclass: true, parent: { select: { id: true } } }
+        include: { Renamedclass: true }
       });
 
       for (const student of promotedStudents) {
@@ -2429,8 +2402,18 @@ router.post('/end-session', async (req, res) => {
         if (isNaN(level) || level >= FINAL_CLASS_LEVEL) continue;
 
         const nextClass = allClasses.find(c => c.name === (level + 1).toString() && c.section === student.Renamedclass.section);
-        if (!nextClass) continue; // Skip if no next class found (rare)
+        if (!nextClass) {
+          // Auto-create next class if missing
+          try {
+            const created = await prisma.renamedclass.create({
+              data: { name: (level + 1).toString(), section: student.Renamedclass.section, schoolId }
+            });
+            allClasses.push(created);
+          } catch (_) { }
+          continue;
+        }
 
+        const oldClassId = student.classId;
         const rollClash = await prisma.student.findFirst({
           where: { classId: nextClass.id, rollNo: student.rollNo, id: { not: student.id } },
           select: { id: true }
@@ -2444,7 +2427,7 @@ router.post('/end-session', async (req, res) => {
         await prisma.$transaction([
           prisma.student.update({
             where: { id: student.id },
-            data: { classId: nextClass.id, rollNo: nextRoll, promotionStatus: 'NONE', promotionAcknowledgedAt: null }
+            data: { classId: nextClass.id, rollNo: nextRoll, promotionAcknowledgedAt: null }
           }),
           prisma.enrollment.upsert({
             where: { studentId_classId_year: { studentId: student.id, classId: nextClass.id, year: promoYear } },
@@ -2453,86 +2436,47 @@ router.post('/end-session', async (req, res) => {
           })
         ]);
 
-        processedIds.push(student.id);
+        // Clean up old data
+        const oldAsgIds = (await prisma.assignment.findMany({ where: { classId: oldClassId }, select: { id: true } })).map(a => a.id);
+        if (oldAsgIds.length > 0) await prisma.submission.deleteMany({ where: { studentId: student.id, assignmentId: { in: oldAsgIds } } });
+        await prisma.studentmaterialstatus.deleteMany({ where: { studentId: student.id } });
+        await prisma.quizresponse.deleteMany({ where: { studentId: student.id } });
+        await prisma.attendance.deleteMany({ where: { studentId: student.id } });
 
-        if (student.parent?.length > 0) {
-          student.parent.forEach(p => {
-            parentNotifications.push({
+        // Notify parents
+        const parents = await prisma.parent.findMany({ where: { student: { some: { id: student.id } } } });
+        if (parents.length > 0) {
+          await prisma.notification.createMany({
+            data: parents.map(p => ({
               schoolId, parentId: p.id, studentId: student.id,
               message: `🎉 ${student.firstName} ${student.lastName} has been promoted to Class ${nextClass.name}${nextClass.section} for academic year ${promoYear}.`,
               type: NT.PROMOTION
-            });
+            }))
           });
         }
       }
 
-      // 2. Handle RETAINED / Other Class 1-9 students (stay in current class)
-      const otherStudents = await prisma.student.findMany({
-        where: {
-          schoolId,
-          isApproved: true,
-          id: { notIn: processedIds.length > 0 ? processedIds : [-1] },
-          promotionStatus: { notIn: ['GRADUATED', 'ALUMNI'] },
-          Renamedclass: { name: { not: FINAL_CLASS_LEVEL.toString() } }
-        },
-        include: { Renamedclass: true, parent: { select: { id: true } } }
-      });
-
-      for (const student of otherStudents) {
-        if (!student.classId) continue;
-
-        await prisma.$transaction([
-          prisma.student.update({
-            where: { id: student.id },
-            data: { promotionStatus: 'NONE', promotionAcknowledgedAt: null, isApproved: true }
-          }),
-          prisma.enrollment.upsert({
-            where: { studentId_classId_year: { studentId: student.id, classId: student.classId, year: promoYear } },
-            update: {},
-            create: { studentId: student.id, classId: student.classId, year: promoYear }
-          })
-        ]);
-
-        if (student.promotionStatus === 'RETAINED' && student.parent?.length > 0) {
-          student.parent.forEach(p => {
-            parentNotifications.push({
-              schoolId, parentId: p.id, studentId: student.id,
-              message: `ℹ️ ${student.firstName} ${student.lastName} will continue in Class ${student.Renamedclass?.name}${student.Renamedclass?.section} for academic year ${promoYear}.`,
-              type: NT.PROMOTION
-            });
-          });
-        }
-      }
-
-      // 3. Batch Create Notifications
-      if (parentNotifications.length > 0) {
-        await prisma.notification.createMany({ data: parentNotifications });
-      }
-
-      // 4. Auto-graduate remaining Class 10 students
+      // Auto-graduate remaining Class 10 students who haven't been graduated yet
       const class10Students = await prisma.student.findMany({
         where: { schoolId, Renamedclass: { name: FINAL_CLASS_LEVEL.toString() }, promotionStatus: { notIn: ['GRADUATED'] } },
-        include: { Renamedclass: true, parent: { select: { id: true } } }
+        include: { Renamedclass: true }
       });
-      const gradNotifications = [];
       for (const student of class10Students) {
         const gradLabel = student.Renamedclass ? `${student.Renamedclass.name}${student.Renamedclass.section}` : null;
         await prisma.student.update({
           where: { id: student.id },
           data: { promotionStatus: 'GRADUATED', isApproved: true, graduatedAt: new Date(), graduationYear: endedYear, previousClass: gradLabel }
         });
-        if (student.parent?.length > 0) {
-          student.parent.forEach(p => {
-            gradNotifications.push({
+        const parents = await prisma.parent.findMany({ where: { student: { some: { id: student.id } } } });
+        if (parents.length > 0) {
+          await prisma.notification.createMany({
+            data: parents.map(p => ({
               schoolId, parentId: p.id, studentId: student.id,
               message: `🎓 Congratulations! ${student.firstName} ${student.lastName} has graduated from ${school.name} (Class 10). Academic year ${endedYear} complete.`,
               type: NT.GRADUATION
-            });
+            }))
           });
         }
-      }
-      if (gradNotifications.length > 0) {
-        await prisma.notification.createMany({ data: gradNotifications });
       }
     }
 
@@ -2577,8 +2521,7 @@ router.post('/end-session', async (req, res) => {
       suggestedNextYear: isFourthSessionEnd ? newYear : null
     });
   } catch (err) {
-    console.error('CRITICAL: End Session Error:', err);
-    res.status(500).json({ error: 'Failed to end session: ' + err.message });
+    res.status(500).json({ error: 'Failed to end session' });
   }
 });
 
@@ -2770,26 +2713,21 @@ router.get('/session-checklist', async (req, res) => {
     // 3. Scores calculated — schoolexampublish calculationStatus
     const calculationDone = publishRecord?.calculationStatus === 'COMPLETED';
 
-    // 4. Teacher review — only required for sessions 1–3, not the 4th (final) session
-    const is4thSession = session.toLowerCase().includes('4th');
-    let pendingCount = 0, completedCount = 0, reviewDone = true;
-    if (!is4thSession) {
-      const studentIds = await prisma.student.findMany({ where: { schoolId, isApproved: true }, select: { id: true } });
-      const metrics = await prisma.potentialmetric.findMany({
-        where: { studentId: { in: studentIds.map(s => s.id) }, session, sessionYear: year },
-        select: { status: true }
-      });
-      pendingCount = metrics.filter(m => m.status === 'PENDING_TEACHER_REVIEW').length;
-      completedCount = metrics.filter(m => m.status === 'COMPLETED').length;
-      reviewDone = metrics.length > 0 && pendingCount === 0;
-    }
+    // 4. Teacher review — class teachers confirmed potentialmetric scores
+    const studentIds = await prisma.student.findMany({ where: { schoolId, isApproved: true }, select: { id: true } });
+    const metrics = await prisma.potentialmetric.findMany({
+      where: { studentId: { in: studentIds.map(s => s.id) }, session, sessionYear: year },
+      select: { status: true }
+    });
+    const pendingCount = metrics.filter(m => m.status === 'PENDING_TEACHER_REVIEW').length;
+    const completedCount = metrics.filter(m => m.status === 'COMPLETED').length;
+    const reviewDone = metrics.length > 0 && pendingCount === 0;
 
     const allPassed = missingClasses.length === 0 && resultsPublished && calculationDone && reviewDone;
 
     res.json({
       ok: true,
       session, year, terminal,
-      is4thSession,
       checklist: {
         marks: {
           done: missingClasses.length === 0,
@@ -2803,8 +2741,7 @@ router.get('/session-checklist', async (req, res) => {
           done: reviewDone,
           completed: completedCount,
           pending: pendingCount,
-          total: completedCount + pendingCount,
-          skipped: is4thSession
+          total: metrics.length
         }
       },
       allPassed

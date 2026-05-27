@@ -255,10 +255,7 @@ router.get('/class/:classId/session-report', async (req, res) => {
         const students = await prisma.student.findMany({
             where: {
                 classId: parseInt(classId),
-                OR: [
-                    { isApproved: true },
-                    { promotionStatus: 'PENDING' }
-                ]
+                isApproved: true
             },
             include: { user: true }
         });
@@ -1374,10 +1371,7 @@ router.post('/class/:classId/done', allowRoles('TEACHER'), async (req, res) => {
         const students = await prisma.student.findMany({
             where: {
                 classId: parseInt(classId),
-                OR: [
-                    { isApproved: true },
-                    { promotionStatus: 'PENDING' }
-                ]
+                isApproved: true
             },
             include: {
                 user: { select: { firstName: true, lastName: true } },
@@ -1513,11 +1507,8 @@ router.get('/class/:classId/students', async (req, res) => {
         const students = await prisma.student.findMany({
             where: {
                 classId: parseInt(classId),
-                schoolId: teacher.schoolId,
-                OR: [
-                    { isApproved: true },
-                    { promotionStatus: 'PENDING' }
-                ]
+                isApproved: true,
+                schoolId: teacher.schoolId
             },
             include: { user: { select: { firstName: true, lastName: true } } },
             orderBy: { rollNo: 'asc' }
@@ -1763,161 +1754,7 @@ router.post('/student/approval/:studentId', async (req, res) => {
     }
 });
 
-/* ================= TEACHER PROMOTE / RETAIN (4th Session) ================= */
-
-// POST /students/:studentId/promote — Class teacher promotes a PENDING student to next class
-router.post('/students/:studentId/promote', allowRoles('TEACHER'), async (req, res) => {
-    try {
-        const teacher = await getValidatedTeacher(req, res);
-        if (!teacher) return;
-
-        const studentId = parseInt(req.params.studentId);
-        const student = await prisma.student.findUnique({
-            where: { id: studentId },
-            include: { Renamedclass: true, parent: true }
-        });
-
-        if (!student || student.schoolId !== teacher.schoolId) {
-            return res.status(404).json({ error: "Student not found" });
-        }
-
-        // Only the class head of this student's class can promote
-        const classHeadId = teacher.Renamedclass_Renamedclass_classHeadIdToteacher?.id;
-        if (classHeadId !== student.classId) {
-            return res.status(403).json({ error: "Only the class teacher of this student's class can promote them." });
-        }
-
-        if (student.promotionStatus === 'PROMOTED') {
-            return res.status(400).json({ error: "Student is already promoted." });
-        }
-
-        const currentName = student.Renamedclass?.name;
-        const currentSection = student.Renamedclass?.section;
-        const currentLevel = parseInt(currentName);
-
-        if (isNaN(currentLevel)) {
-            return res.status(400).json({ error: "Invalid class level for promotion." });
-        }
-
-        if (currentLevel >= 10) {
-            return res.status(400).json({ error: "Class 10 students cannot be promoted further. Use graduation instead." });
-        }
-
-        const nextClassName = (currentLevel + 1).toString();
-        let nextClass = await prisma.renamedclass.findFirst({
-            where: { name: nextClassName, section: currentSection, schoolId: teacher.schoolId }
-        });
-
-        if (!nextClass) {
-            nextClass = await prisma.renamedclass.create({
-                data: { name: nextClassName, section: currentSection, schoolId: teacher.schoolId }
-            });
-        }
-
-        const schoolConfig = await prisma.school.findUnique({
-            where: { id: teacher.schoolId },
-            select: { activePerformanceYear: true }
-        });
-        const promoYear = (schoolConfig?.activePerformanceYear || new Date().getFullYear()) + 1;
-        const prevLabel = `${currentName}${currentSection}`;
-
-        await prisma.student.update({
-            where: { id: studentId },
-            data: {
-                isApproved: true,
-                promotionStatus: 'PROMOTED',
-                promotionAcknowledgedAt: null,
-                previousClass: prevLabel
-            }
-        });
-
-        // Notify parents
-        if (student.parent?.length > 0) {
-            await prisma.notification.createMany({
-                data: student.parent.map(p => ({
-                    schoolId: teacher.schoolId,
-                    parentId: p.id,
-                    studentId,
-                    message: `${student.firstName} ${student.lastName} has been promoted to Class ${(currentLevel + 1).toString()}${currentSection}. This will take effect when the session ends.`,
-                    type: 'PROMOTION'
-                }))
-            });
-        }
-
-        res.json({ ok: true, message: `Student marked for promotion to Class ${(currentLevel + 1).toString()}${currentSection}` });
-    } catch (error) {
-        console.error("Teacher promote error:", error);
-        res.status(500).json({ error: "Failed to promote student" });
-    }
-});
-
-// POST /students/:studentId/retain — Class teacher retains a PENDING student in the same class
-router.post('/students/:studentId/retain', allowRoles('TEACHER'), async (req, res) => {
-    try {
-        const teacher = await getValidatedTeacher(req, res);
-        if (!teacher) return;
-
-        const studentId = parseInt(req.params.studentId);
-        const student = await prisma.student.findUnique({
-            where: { id: studentId },
-            include: { Renamedclass: true, parent: true }
-        });
-
-        if (!student || student.schoolId !== teacher.schoolId) {
-            return res.status(404).json({ error: "Student not found" });
-        }
-
-        // Only the class head of this student's class can retain
-        const classHeadId = teacher.Renamedclass_Renamedclass_classHeadIdToteacher?.id;
-        if (classHeadId !== student.classId) {
-            return res.status(403).json({ error: "Only the class teacher of this student's class can retain them." });
-        }
-
-        if (student.promotionStatus === 'RETAINED') {
-            return res.status(400).json({ error: "Student is already retained." });
-        }
-
-        const retainClassLabel = student.Renamedclass
-            ? `${student.Renamedclass.name}${student.Renamedclass.section}`
-            : null;
-
-        const schoolConfig = await prisma.school.findUnique({
-            where: { id: teacher.schoolId },
-            select: { activePerformanceYear: true }
-        });
-        const nextYear = (schoolConfig?.activePerformanceYear || new Date().getFullYear()) + 1;
-
-        await prisma.student.update({
-            where: { id: studentId },
-            data: {
-                isApproved: true,
-                promotionStatus: 'RETAINED',
-                promotionAcknowledgedAt: null,
-                previousClass: retainClassLabel
-            }
-        });
-
-        // Notify parents
-        if (student.parent?.length > 0) {
-            await prisma.notification.createMany({
-                data: student.parent.map(p => ({
-                    schoolId: teacher.schoolId,
-                    parentId: p.id,
-                    studentId,
-                    message: `${student.firstName} ${student.lastName} has been retained in Class ${retainClassLabel} for the next academic year.`,
-                    type: 'PROMOTION'
-                }))
-            });
-        }
-
-        res.json({ ok: true, message: `Student marked for retention in Class ${retainClassLabel}` });
-    } catch (error) {
-        console.error("Teacher retain error:", error);
-        res.status(500).json({ error: "Failed to retain student" });
-    }
-});
-
-
+// Query Existing Exam Marks
 router.get('/exam-marks/query', async (req, res) => {
     try {
         const { classId, subjectId, examTerminal } = req.query;
@@ -2316,14 +2153,7 @@ router.get('/analytics/performance-potential', async (req, res) => {
 
         // Get students with their pre-calculated metrics (match by session name, most recent year)
         const students = await prisma.student.findMany({
-            where: {
-                classId: { in: classesArray },
-                schoolId: teacher.schoolId,
-                OR: [
-                    { isApproved: true },
-                    { promotionStatus: 'PENDING' }
-                ]
-            },
+            where: { classId: { in: classesArray }, isApproved: true, schoolId: teacher.schoolId },
             include: {
                 user: { select: { firstName: true, lastName: true } },
                 Renamedclass: { select: { name: true, section: true } },
