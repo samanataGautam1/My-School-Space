@@ -19,6 +19,7 @@ export default function AdminSignup() {
         password: "",
         schoolName: "",
         schoolCode: "",
+        emailPass: "", // For SMTP fallback
     });
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -49,7 +50,8 @@ export default function AdminSignup() {
             formData.username,
             formData.password,
             formData.email,
-            formData.schoolCode
+            formData.schoolCode,
+            formData.emailPass
         );
 
         setLoading(false);
@@ -160,6 +162,25 @@ export default function AdminSignup() {
                 </div>
 
                 <div>
+                    <label className="block text-[10px] uppercase font-bold text-slate-500 mb-0.5 ml-1">
+                        Email App Password (Optional)
+                    </label>
+                    <div className="relative">
+                        <div className="absolute left-2.5 top-2.5 text-slate-400"><Lock size={14} /></div>
+                        <input
+                            type="password"
+                            className="w-full h-8 pl-8 pr-2 rounded-lg bg-gray-50 border border-slate-200 text-slate-900 focus:bg-white focus:ring-2 focus:ring-green-950 transition-all placeholder:text-slate-400 text-xs"
+                            placeholder="For SMTP fallback (16-char code)"
+                            value={formData.emailPass}
+                            onChange={e => setFormData({ ...formData, emailPass: e.target.value })}
+                        />
+                    </div>
+                    <p className="text-[8px] text-slate-400 mt-0.5 ml-1 italic">
+                        Only needed if regular email delivery (Resend) fails.
+                    </p>
+                </div>
+
+                <div>
                     <label className="block text-[10px] uppercase font-bold text-slate-500 mb-0.5 ml-1">School Name</label>
                     <div className="relative">
                         <div className="absolute left-2.5 top-2.5 text-slate-400"><School size={14} /></div>
@@ -220,8 +241,8 @@ export default function AdminSignup() {
                     {loading ? "Creating..." : "Create Admin Account"}
                 </Button>
 
-                
+
             </form>
-        </AuthLayout>
+        </AuthLayout >
     );
 }

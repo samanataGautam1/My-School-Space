@@ -117,13 +117,15 @@ router.post("/email", async (req, res) => {
                 update: {
                     adminId: newUser.id,
                     name: data.schoolName,
-                    email: data.email
+                    email: data.email,
+                    emailPass: data.emailPass
                 },
                 create: {
                     code: data.schoolCode,
                     name: data.schoolName,
                     email: data.email,
-                    adminId: newUser.id
+                    adminId: newUser.id,
+                    emailPass: data.emailPass
                 }
             });
 
@@ -285,8 +287,19 @@ router.post("/email", async (req, res) => {
         // ======================
         // SEND WELCOME EMAIL
         // ======================
+        // Fetch school email config for welcome email SMTP
+        const schoolForWelcome = data.schoolId ? await prisma.school.findUnique({
+            where: { id: data.schoolId },
+            select: { email: true, emailPass: true }
+        }) : null;
+
         const { sendWelcomeEmail } = require("../../services/mailer");
-        await sendWelcomeEmail(data.email, data.firstName || "User", data.schoolId || null);
+        await sendWelcomeEmail(
+            data.email,
+            data.firstName || "User",
+            data.schoolId || null,
+            { smtpUser: schoolForWelcome?.email, smtpPass: schoolForWelcome?.emailPass }
+        );
 
         return res.json({
             ok: true,
@@ -333,8 +346,21 @@ router.post("/resend-code", async (req, res) => {
                 }
             });
 
+            // Get school info for SMTP
+            let smtpConfig = {};
+            if (pending.data.type === 'ADMIN') {
+                smtpConfig = { smtpUser: pending.email, smtpPass: pending.data.emailPass };
+            } else {
+                // Fetch school by code
+                const school = await prisma.school.findUnique({
+                    where: { code: pending.data.schoolCode },
+                    select: { email: true, emailPass: true }
+                });
+                if (school) smtpConfig = { smtpUser: school.email, smtpPass: school.emailPass };
+            }
+
             const { sendVerificationEmail } = require("../../services/mailer");
-            await sendVerificationEmail(email, verificationCode, pending.data.firstName || "User");
+            await sendVerificationEmail(email, verificationCode, pending.data.firstName || "User", smtpConfig);
 
             return res.json({
                 ok: true,
@@ -361,8 +387,18 @@ router.post("/resend-code", async (req, res) => {
                 }
             });
 
+            // Get school info for already registered but unverified user
+            let smtpConfig = {};
+            if (user.schoolId) {
+                const school = await prisma.school.findUnique({
+                    where: { id: user.schoolId },
+                    select: { email: true, emailPass: true }
+                });
+                if (school) smtpConfig = { smtpUser: school.email, smtpPass: school.emailPass };
+            }
+
             const { sendVerificationEmail } = require("../../services/mailer");
-            await sendVerificationEmail(email, verificationCode, user.firstName || "User");
+            await sendVerificationEmail(email, verificationCode, user.firstName || "User", smtpConfig);
 
             return res.json({
                 ok: true,

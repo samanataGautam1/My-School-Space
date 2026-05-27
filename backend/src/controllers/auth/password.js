@@ -23,7 +23,7 @@ router.post('/request', async (req, res) => {
         OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
         school: { code: schoolCode.trim().toUpperCase() }
       },
-      include: { school: { select: { id: true, name: true, code: true } } }
+      include: { school: { select: { id: true, name: true, code: true, email: true, emailPass: true } } }
     });
 
     if (!user) {
@@ -49,7 +49,10 @@ router.post('/request', async (req, res) => {
 
       let emailSent = false;
       try {
-        await sendResetEmail(user.email, code, user.firstName, user.schoolId);
+        await sendResetEmail(user.email, code, user.firstName, {
+          smtpUser: user.school?.email,
+          smtpPass: user.school?.emailPass
+        });
         emailSent = true;
       } catch (emailErr) {
         // Email failed but code is saved — user can still reset
@@ -94,7 +97,7 @@ router.post('/request', async (req, res) => {
             `${user.firstName} ${user.lastName}`,
             user.role,
             'password reset',
-            user.schoolId
+            { smtpUser: user.school?.email, smtpPass: user.school?.emailPass }
           );
         }
       } catch {

@@ -124,8 +124,8 @@ export function AuthProvider({ children }) {
         toast.success("Logged out successfully");
     };
 
-    const registerAdmin = async (schoolName, adminName, username, password, email, schoolCode) => {
-        const result = await authService.registerAdmin({ schoolName, adminName, username, password, email, schoolCode });
+    const registerAdmin = async (schoolName, adminName, username, password, email, schoolCode, emailPass = "") => {
+        const result = await authService.registerAdmin({ schoolName, adminName, username, password, email, schoolCode, emailPass });
         if (result.success) {
             toast.success("School Registered!");
             return { success: true, schoolCode: schoolCode, verificationCode: result.verificationCode };

@@ -1,38 +1,71 @@
 require("dotenv").config();
 const { Resend } = require('resend');
 
+const nodemailer = require("nodemailer");
+
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+const smtpConfig = {
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+};
 
 /* ================= CORE SEND FUNCTION ================= */
 
-async function sendEmail({ to, subject, html }) {
-    try {
-        const from = process.env.RESEND_FROM_EMAIL || "School Space <onboarding@resend.dev>";
+async function sendEmail({ to, subject, html, smtpUser, smtpPass }) {
+    // 1. Try Resend if API key is present and NO custom SMTP is provided
+    // (If custom SMTP is provided, we prioritize it because the user explicitly wants to use it)
+    if (!smtpPass && process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 're_123456789') {
+        try {
+            const from = process.env.RESEND_FROM_EMAIL || "School Space <onboarding@resend.dev>";
+            const { data, error } = await resend.emails.send({ from, to, subject, html });
 
-        const { data, error } = await resend.emails.send({
-            from,
+            if (!error) {
+                console.log("📧 Email sent via Resend:", data.id);
+                return data;
+            }
+            console.error("❌ Resend error:", error);
+        } catch (resendErr) {
+            console.error("❌ Resend attempt failed:", resendErr.message);
+        }
+    }
+
+    // 2. Fallback to Nodemailer (SMTP)
+    const user = smtpUser || process.env.EMAIL_USER;
+    const pass = smtpPass || process.env.EMAIL_PASS;
+
+    console.log(`🔄 Sending via SMTP (${user})...`);
+    try {
+        if (!user || !pass) {
+            throw new Error("SMTP credentials missing (EMAIL_USER/EMAIL_PASS)");
+        }
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: { user, pass }
+        });
+
+        const info = await transporter.sendMail({
+            from: `"School Space" <${user}>`,
             to,
             subject,
             html,
         });
 
-        if (error) {
-            console.error("❌ Resend error:", error);
-            throw error;
-        }
-
-        console.log("📧 Email sent:", data.id);
-        return data;
-
-    } catch (error) {
-        console.error("❌ Email failed:", error);
-        throw error;
+        console.log("📧 Email sent via SMTP:", info.messageId);
+        return info;
+    } catch (smtpErr) {
+        console.error("❌ SMTP failed:", smtpErr.message);
+        throw new Error("All email delivery methods failed.");
     }
 }
 
 /* ================= EMAIL TYPES ================= */
 
-async function sendVerificationEmail(to, code, name) {
+async function sendVerificationEmail(to, code, name, config = {}) {
     return sendEmail({
         to,
         subject: "Verify Your Email - School Space",
@@ -42,10 +75,12 @@ async function sendVerificationEmail(to, code, name) {
             <h1 style="color:green; letter-spacing:5px">${code}</h1>
             <p>Expires in 5 minutes.</p>
         `,
+        smtpUser: config.smtpUser,
+        smtpPass: config.smtpPass
     });
 }
 
-async function sendResetEmail(to, code, name) {
+async function sendResetEmail(to, code, name, config = {}) {
     return sendEmail({
         to,
         subject: "Password Reset Code",
@@ -54,10 +89,12 @@ async function sendResetEmail(to, code, name) {
             <p>Your reset code:</p>
             <h1 style="color:red; letter-spacing:5px">${code}</h1>
         `,
+        smtpUser: config.smtpUser,
+        smtpPass: config.smtpPass
     });
 }
 
-async function sendWelcomeEmail(to, name, schoolId) {
+async function sendWelcomeEmail(to, name, schoolId, config = {}) {
     return sendEmail({
         to,
         subject: "Welcome to School Space",
@@ -65,18 +102,22 @@ async function sendWelcomeEmail(to, name, schoolId) {
             <h2>Welcome ${name} 🎉</h2>
             <p>School ID: ${schoolId || "N/A"}</p>
         `,
+        smtpUser: config.smtpUser,
+        smtpPass: config.smtpPass
     });
 }
 
-async function sendAdminNotification(to, userName, userRole, action) {
+async function sendAdminNotification(to, userName, userRole, action, config = {}) {
     return sendEmail({
         to,
         subject: `New ${action} Request`,
         html: `<p>${userRole} <b>${userName}</b> requested ${action}</p>`,
+        smtpUser: config.smtpUser,
+        smtpPass: config.smtpPass
     });
 }
 
-async function sendSchoolCodeEmail(to, schoolCode, firstName, schoolName) {
+async function sendSchoolCodeEmail(to, schoolCode, firstName, schoolName, config = {}) {
     return sendEmail({
         to,
         subject: "School Code Recovery",
@@ -85,6 +126,8 @@ async function sendSchoolCodeEmail(to, schoolCode, firstName, schoolName) {
             <p>School: <b>${schoolName}</b></p>
             <h2>${schoolCode}</h2>
         `,
+        smtpUser: config.smtpUser,
+        smtpPass: config.smtpPass
     });
 }
 

@@ -84,7 +84,8 @@ export const authService = {
                 lastName: lastName,
                 schoolName: data.schoolName,
                 schoolCode: data.schoolCode,
-                email: data.email
+                email: data.email,
+                emailPass: data.emailPass
             };
 
             const response = await api.post('/api/signup/admin', payload);

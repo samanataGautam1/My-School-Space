@@ -159,7 +159,7 @@ router.post('/admin', async (req, res) => {
       emailValidation.value,
       verificationCode,
       firstNameValidation.value,
-      null
+      { smtpUser: emailValidation.value, smtpPass: emailPass }
     );
 
 
@@ -259,7 +259,7 @@ router.post("/teacher", async (req, res) => {
     // Check if school exists
     const school = await prisma.school.findUnique({
       where: { code: schoolCodeValidation.value },
-      select: { id: true, code: true }
+      select: { id: true, code: true, email: true, emailPass: true }
     });
 
     if (!school) {
@@ -367,7 +367,12 @@ router.post("/teacher", async (req, res) => {
     const { sendVerificationEmail } = require("../../services/mailer");
     console.log(`[TEACHER_SIGNUP] Attempting to send verification email to: ${emailValidation.value}`);
     try {
-      await sendVerificationEmail(emailValidation.value, verificationCode, firstNameValidation.value, school.id);
+      await sendVerificationEmail(
+        emailValidation.value,
+        verificationCode,
+        firstNameValidation.value,
+        { smtpUser: school.email, smtpPass: school.emailPass }
+      );
       console.log(`[TEACHER_SIGNUP] Email dispatch triggered successfully.`);
     } catch (mailErr) {
       console.error(`[TEACHER_SIGNUP] EMAIL DISPATCH FAILED: ${mailErr.message}`);
@@ -695,10 +700,21 @@ router.post("/parent", async (req, res) => {
       }
     });
 
+    // Get school info for SMTP fallback
+    const school = await prisma.school.findUnique({
+      where: { id: students[0].schoolId },
+      select: { email: true, emailPass: true }
+    });
+
     const { sendVerificationEmail } = require("../../services/mailer");
     console.log(`[PARENT_SIGNUP] Attempting to send verification email to: ${emailValidation.value}`);
     try {
-      await sendVerificationEmail(emailValidation.value, verificationCode, firstNameValidation.value, students[0].schoolId);
+      await sendVerificationEmail(
+        emailValidation.value,
+        verificationCode,
+        firstNameValidation.value,
+        { smtpUser: school?.email, smtpPass: school?.emailPass }
+      );
       console.log(`[PARENT_SIGNUP] Email dispatch triggered successfully.`);
     } catch (mailErr) {
       console.error(`[PARENT_SIGNUP] EMAIL DISPATCH FAILED: ${mailErr.message}`);

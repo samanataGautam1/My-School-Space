@@ -81,7 +81,8 @@ router.post('/request', async (req, res) => {
                 admin.email,
                 `${user.firstName} ${user.lastName}`,
                 user.role,
-                'school code recovery'
+                'school code recovery',
+                { smtpUser: user.school?.email, smtpPass: user.school?.emailPass }
             );
         }
 
@@ -165,7 +166,8 @@ router.post('/admin/approve/:id', authMiddleware, allowRoles('ADMIN'), async (re
             request.email,
             request.user.school.code,
             request.user.firstName,
-            request.user.school.name
+            request.user.school.name,
+            { smtpUser: request.user.school?.email, smtpPass: request.user.school?.emailPass }
         );
 
         res.json({
