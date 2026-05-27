@@ -161,19 +161,118 @@ router.post("/email", async (req, res) => {
                 }
             });
 
-            await prisma.teacher.upsert({
+            const teacher = await prisma.teacher.upsert({
                 where: { email: data.email },
                 update: {
                     userId: newUser.id,
-                    status: "PENDING"
+                    status: "ACTIVE" // Set to ACTIVE as requested for production smoothness
                 },
                 create: {
                     email: data.email,
                     userId: newUser.id,
-                    status: "PENDING",
+                    status: "ACTIVE",
                     schoolId: school.id
                 }
             });
+
+            // --- PROCESS CLASS HEAD ROLE ---
+            if (data.classTeacherFor) {
+                const classMatch = data.classTeacherFor.trim().match(/^(\d+)\s*([A-Za-z])$/);
+                if (classMatch) {
+                    const gradeName = classMatch[1];
+                    const sectionName = classMatch[2].toUpperCase();
+
+                    const cls = await prisma.Renamedclass.upsert({
+                        where: {
+                            name_section_schoolId: {
+                                name: gradeName,
+                                section: sectionName,
+                                schoolId: school.id
+                            }
+                        },
+                        update: { classHeadId: teacher.id },
+                        create: {
+                            name: gradeName,
+                            section: sectionName,
+                            schoolId: school.id,
+                            classHeadId: teacher.id
+                        }
+                    });
+
+                    // Also ensure they are in the classteachers list
+                    await prisma.teacher.update({
+                        where: { id: teacher.id },
+                        data: {
+                            Renamedclass_classteachers: {
+                                connect: { id: cls.id }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // --- PROCESS SUBJECT ASSIGNMENTS ---
+            if (data.assignments && Array.isArray(data.assignments)) {
+                for (const assign of data.assignments) {
+                    const { subject: subName, className: clsInput } = assign;
+                    if (!subName || !clsInput) continue;
+
+                    const clsMatch = clsInput.trim().match(/^(\d+)\s*([A-Za-z])$/);
+                    if (clsMatch) {
+                        const gradeName = clsMatch[1];
+                        const sectionName = clsMatch[2].toUpperCase();
+
+                        // 1. Ensure Class exists
+                        const cls = await prisma.Renamedclass.upsert({
+                            where: {
+                                name_section_schoolId: {
+                                    name: gradeName,
+                                    section: sectionName,
+                                    schoolId: school.id
+                                }
+                            },
+                            update: {},
+                            create: {
+                                name: gradeName,
+                                section: sectionName,
+                                schoolId: school.id
+                            }
+                        });
+
+                        // 2. Ensure Subject exists
+                        const subject = await prisma.subject.upsert({
+                            where: {
+                                name_schoolId: {
+                                    name: subName,
+                                    schoolId: school.id
+                                }
+                            },
+                            update: {},
+                            create: {
+                                name: subName,
+                                schoolId: school.id
+                            }
+                        });
+
+                        // 3. Link Teacher, Subject and Class
+                        await prisma.teachersubject.upsert({
+                            where: {
+                                teacherId_subjectId_classId: {
+                                    teacherId: teacher.id,
+                                    subjectId: subject.id,
+                                    classId: cls.id
+                                }
+                            },
+                            update: {},
+                            create: {
+                                teacherId: teacher.id,
+                                subjectId: subject.id,
+                                classId: cls.id
+                            }
+                        });
+                    }
+                }
+            }
         }
 
         // ======================

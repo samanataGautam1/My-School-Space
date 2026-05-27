@@ -451,10 +451,14 @@ router.post("/student", async (req, res) => {
     return res.status(400).json({ error: lastNameValidation.error });
   }
 
-  // Validate email
-  const emailValidation = validateEmail(email);
-  if (!emailValidation.valid) {
-    return res.status(400).json({ error: emailValidation.error });
+  // Optional Email Validation
+  let validatedEmail = null;
+  if (email && email.trim()) {
+    const emailValidation = validateEmail(email.trim());
+    if (!emailValidation.valid) {
+      return res.status(400).json({ error: emailValidation.error });
+    }
+    validatedEmail = emailValidation.value;
   }
 
   // Validate school code
@@ -487,7 +491,7 @@ router.post("/student", async (req, res) => {
     // Check if school exists
     const school = await prisma.school.findUnique({
       where: { code: schoolCodeValidation.value },
-      select: { id: true, email: true, emailPass: true }
+      select: { id: true, code: true, adminId: true }
     });
     if (!school) {
       return res.status(400).json({ error: "Invalid school code." });
@@ -501,70 +505,105 @@ router.post("/student", async (req, res) => {
       return res.status(400).json({ error: "Username already taken." });
     }
 
-    // Check if email already exists
-    const emailExists = await prisma.user.findUnique({
-      where: { email: emailValidation.value }
+    // Check if email already exists (if provided)
+    if (validatedEmail) {
+      const emailExists = await prisma.user.findUnique({
+        where: { email: validatedEmail }
+      });
+      if (emailExists) {
+        return res.status(400).json({ error: "Email already registered." });
+      }
+    }
+
+    // Find or Create Class (Lazy Creation)
+    const classModel = prisma.renamedclass || prisma.Renamedclass;
+    let cls = await classModel.findFirst({
+      where: {
+        schoolId: school.id,
+        name: gradeName,
+        section: sectionName
+      }
     });
-    if (emailExists) {
-      return res.status(400).json({ error: "Email already registered." });
+
+    if (!cls) {
+      cls = await classModel.create({
+        data: {
+          name: gradeName,
+          section: sectionName,
+          schoolId: school.id
+        }
+      });
     }
 
     const hash = await bcrypt.hash(passwordValidation.value, 10);
 
-    // Generate OTP
-    const verificationCode = Math.floor(10000 + Math.random() * 90000).toString();
-    const verificationCodeExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-
-    // Store in PendingRegistration
-    await prisma.pendingregistration.deleteMany({
-      where: { email: emailValidation.value }
-    });
-
-    await prisma.pendingregistration.create({
+    // DIRECTLY Create User (No OTP required for students)
+    const newUser = await prisma.user.create({
       data: {
-        email: emailValidation.value,
-        code: verificationCode,
-        expiresAt: verificationCodeExpiresAt,
-        data: {
-          type: 'STUDENT',
-          username: usernameValidation.value,
-          password: hash,
-          firstName: firstNameValidation.value,
-          lastName: lastNameValidation.value,
-          email: emailValidation.value,
-          schoolCode: schoolCodeValidation.value,
-          className: classInput,
-          rollNo: rollNoValidation.value,
-          schoolId: school.id
-        }
+        username: usernameValidation.value,
+        password: hash,
+        firstName: firstNameValidation.value,
+        lastName: lastNameValidation.value,
+        email: validatedEmail,
+        role: "STUDENT",
+        emailVerified: true, // Auto-verified since they are approved manually
+        isActive: false,    // Awaiting school approval
+        schoolId: school.id
       }
     });
 
-    // Send OTP
-    const { sendVerificationEmail } = require("../../services/mailer");
-    console.log(`[STUDENT_SIGNUP] Attempting to send verification email to: ${emailValidation.value}`);
-    try {
-      await sendVerificationEmail(
-        emailValidation.value,
-        verificationCode,
-        firstNameValidation.value,
-        { smtpUser: school.email, smtpPass: school.emailPass }
-      );
-      console.log(`[STUDENT_SIGNUP] Email dispatch triggered successfully.`);
-    } catch (mailErr) {
-      // ⚠️ Email failed but do NOT block signup. Pending registration is kept.
-      console.error(`⚠️ [STUDENT_SIGNUP] Email dispatch failed (non-blocking): ${mailErr.message}`);
+    // Generate student code
+    const crypto = require('crypto');
+    const prefix = school.code.substring(0, 4).toUpperCase();
+    const suffix = crypto.randomBytes(2).toString('hex').toUpperCase();
+    const studentCode = `${prefix}${suffix}`;
+
+    const newStudent = await prisma.student.create({
+      data: {
+        firstName: firstNameValidation.value,
+        lastName: lastNameValidation.value,
+        rollNo: rollNoValidation.value,
+        studentCode: studentCode,
+        userId: newUser.id,
+        schoolId: school.id,
+        classId: cls.id,
+        isApproved: false,
+        email: validatedEmail
+      }
+    });
+
+    // Notify the Class Teacher or Admin
+    const notificationMsg = `New student registered: ${firstNameValidation.value} ${lastNameValidation.value} for Class ${gradeName}${sectionName}. Approval required.`;
+    if (cls.classHeadId) {
+      await prisma.notification.create({
+        data: {
+          teacherId: cls.classHeadId,
+          message: notificationMsg,
+          schoolId: school.id,
+          type: 'APPROVAL_REQUEST'
+        }
+      });
+    } else if (school.adminId) {
+      await prisma.notification.create({
+        data: {
+          adminId: school.adminId,
+          message: notificationMsg,
+          schoolId: school.id,
+          type: 'APPROVAL_REQUEST'
+        }
+      });
     }
 
     res.json({
       ok: true,
-      message: "Welcome to School Space! A verification code has been sent to your email. Please write the OTP code to verify your account.",
-      requiresVerification: true,
-      email: emailValidation.value,
+      success: true,
+      message: "Registration submitted successfully! Please wait for your class head or admin to approve your account.",
+      requiresVerification: false
     });
+
   } catch (err) {
     console.error("Student Registration Error:", err);
-    res.status(500).json({ error: "Failed to process registration initiation." });
+    res.status(500).json({ error: "Failed to process student registration. Please try again." });
   }
 });
 
