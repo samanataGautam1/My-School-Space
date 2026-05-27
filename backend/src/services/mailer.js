@@ -61,11 +61,14 @@ async function sendEmail({ to, subject, html, smtpUser, smtpPass }) {
         }
 
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true, // Use SSL/TLS
             auth: { user, pass },
-            connectionTimeout: 10000, // 10 seconds
-            greetingTimeout: 10000,   // 10 seconds
-            socketTimeout: 20000      // 20 seconds
+            family: 4, // 🔌 Force IPv4 to avoid ENETUNREACH IPv6 errors
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 20000
         });
 
         const info = await transporter.sendMail({
