@@ -59,17 +59,20 @@ const allowedOrigins = [
   "https://my-school-space.vercel.app"
 ];
 
-// CORS middleware
 app.use(cors({
   origin: function (origin, callback) {
-    // allow tools like Postman
+    // allow Postman / mobile apps / server-to-server
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin)) {
+    const isAllowed = allowedOrigins.some((allowed) =>
+      origin === allowed || origin.startsWith(allowed)
+    );
+
+    if (isAllowed) {
       return callback(null, true);
     }
 
-    return callback(new Error("Not allowed by CORS: " + origin));
+    return callback(new Error("CORS blocked: " + origin));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

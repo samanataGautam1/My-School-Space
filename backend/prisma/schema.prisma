@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl", "rhel-openssl-3.0.x"]
 }
 
@@ -244,40 +244,26 @@ model pendingregistration {
 }
 
 model potentialmetric {
-  id                  Int      @id @default(autoincrement())
+  id                  Int       @id @default(autoincrement())
   studentId           Int
-  session             String   @default("1st Session")
-  sessionYear         Int      @default(2026)
+  session             String    @default("1st Session")
+  sessionYear         Int       @default(2026)
   terminal            String?
   snapshotAt          DateTime?
-  createdAt           DateTime @default(now())
-
-  // Performance components (auto-calculated)
+  createdAt           DateTime  @default(now())
   examScore           Float?
   assignmentScore     Float?
   attendanceScore     Float?
   performanceTotal    Float?
-
-  // Effort components (auto-calculated)
   effortAssignment    Float?
   effortMaterials     Float?
   effortTotal         Float?
-
-  // Curiosity components
-  curiosityQuiz       Float?   // auto-calculated from quiz data
-  curiosityMcq        Float?   // teacher input 0-10
-  curiosityTotal      Float?   // quiz + mcq (set after teacher input)
-
-  // Learning speed (auto-calculated)
+  curiosityQuiz       Float?
+  curiosityMcq        Float?
+  curiosityTotal      Float?
   learningSpeed       Float?
-
-  // Potential total (set after teacher fills curiosityMcq)
   potentialTotal      Float?
-
-  // Status: PENDING_TEACHER_REVIEW or COMPLETED
-  status              String   @default("PENDING_TEACHER_REVIEW")
-
-  // Legacy fields (kept for backward compat with old data)
+  status              String    @default("PENDING_TEACHER_REVIEW")
   monthYear           String?
   effort              Float?
   teacherMarks        Float?
@@ -286,8 +272,7 @@ model potentialmetric {
   learningSpeedData   Json?
   examDeviation       Float?
   attendanceDeviation Float?
-
-  student             student  @relation(fields: [studentId], references: [id], onDelete: Cascade, map: "PotentialMetric_studentId_fkey")
+  student             student   @relation(fields: [studentId], references: [id], onDelete: Cascade, map: "PotentialMetric_studentId_fkey")
 
   @@unique([studentId, session, sessionYear], map: "PotentialMetric_studentId_session_sessionYear_key")
 }
@@ -376,40 +361,40 @@ model schoolcoderequest {
 }
 
 model student {
-  id                    Int                     @id @default(autoincrement())
-  studentCode           String                  @unique(map: "Student_studentCode_key")
-  rollNo                Int
-  firstName             String
-  lastName              String
-  userId                Int?                    @unique(map: "Student_userId_key")
-  schoolId              Int
-  classId               Int?
-  createdAt             DateTime                @default(now())
-  email                 String?                 @unique(map: "Student_email_key")
-  isApproved            Boolean                 @default(false)
-  promotionStatus       String?                 @default("NONE") // NONE, PENDING, PROMOTED, RETAINED, GRADUATED
-  graduatedAt               DateTime?
-  graduationYear            Int?
-  promotionAcknowledgedAt   DateTime?
-  previousClass             String?   // e.g. "9A" — the class the student was in before the last PROMOTED/RETAINED/GRADUATED action
-  attendance            attendance[]
-  enrollment            enrollment[]
-  exammark              exammark[]
-  fee                   fee[]
-  feedback              feedback[]
-  feedbackrequest       feedbackrequest[]
-  notification          notification[]
-  potentialmetric       potentialmetric[]
-  quizresponse          quizresponse[]
-  rating                rating[]
-  Renamedclass          Renamedclass?           @relation(fields: [classId], references: [id], map: "Student_classId_fkey")
-  school                school                  @relation(fields: [schoolId], references: [id], onDelete: Cascade, map: "Student_schoolId_fkey")
-  user                  user?                   @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Student_userId_fkey")
-  studentmaterialstatus studentmaterialstatus[]
-  submission            submission[]
-  teachermessage        teachermessage[]
-  transaction           transaction[]
-  parent                parent[]                @relation("parentstudents")
+  id                      Int                     @id @default(autoincrement())
+  studentCode             String                  @unique(map: "Student_studentCode_key")
+  rollNo                  Int
+  firstName               String
+  lastName                String
+  userId                  Int?                    @unique(map: "Student_userId_key")
+  schoolId                Int
+  classId                 Int?
+  createdAt               DateTime                @default(now())
+  email                   String?                 @unique(map: "Student_email_key")
+  isApproved              Boolean                 @default(false)
+  promotionStatus         String?                 @default("NONE")
+  graduatedAt             DateTime?
+  graduationYear          Int?
+  promotionAcknowledgedAt DateTime?
+  previousClass           String?
+  attendance              attendance[]
+  enrollment              enrollment[]
+  exammark                exammark[]
+  fee                     fee[]
+  feedback                feedback[]
+  feedbackrequest         feedbackrequest[]
+  notification            notification[]
+  potentialmetric         potentialmetric[]
+  quizresponse            quizresponse[]
+  rating                  rating[]
+  Renamedclass            Renamedclass?           @relation(fields: [classId], references: [id], map: "Student_classId_fkey")
+  school                  school                  @relation(fields: [schoolId], references: [id], onDelete: Cascade, map: "Student_schoolId_fkey")
+  user                    user?                   @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Student_userId_fkey")
+  studentmaterialstatus   studentmaterialstatus[]
+  submission              submission[]
+  teachermessage          teachermessage[]
+  transaction             transaction[]
+  parent                  parent[]                @relation("parentstudents")
 
   @@unique([classId, rollNo], map: "Student_classId_rollNo_key")
   @@index([schoolId], map: "Student_schoolId_fkey")
@@ -678,8 +663,8 @@ model schoolexampublish {
   publishedAt           DateTime  @default(now())
   calculationSnapshotAt DateTime?
   adminId               Int?
-  user              user?    @relation(fields: [adminId], references: [id])
-  school            school   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  user                  user?     @relation(fields: [adminId], references: [id])
+  school                school    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@unique([schoolId, examTerminal])
   @@index([schoolId])
