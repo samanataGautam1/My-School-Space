@@ -1429,26 +1429,25 @@ router.post('/class/:classId/done', allowRoles('TEACHER'), async (req, res) => {
                 where: { student: { some: { id: student.id } } },
                 select: { firstName: true, lastName: true, email: true }
             });
+            const { sendFinalSessionReportEmail } = require('../../services/mailer');
 
             for (const p of parentInfo) {
                 // Email
                 try {
-                    /* 
-                        await sendFinalSessionReportEmail(
-                            p.email,
-                            `${p.firstName} ${p.lastName}`,
-                            `${student.user.firstName} ${student.user.lastName}`,
-                            {
-                                session: sessionName,
-                                year: 2026,
-                                totalPercentage: totalPercentage,
-                                attendancePercentage: attendancePct,
-                                examAverage: examAvg,
-                                teacherName: teacherName
-                            },
-                            teacher.schoolId // Pass schoolId
-                        );
-                        */
+                    await sendFinalSessionReportEmail(
+                        p.email,
+                        `${p.firstName} ${p.lastName}`,
+                        `${student.user.firstName} ${student.user.lastName}`,
+                        {
+                            session: sessionName,
+                            year: 2026,
+                            totalPercentage: totalPercentage,
+                            attendancePercentage: attendancePct,
+                            examAverage: examAvg,
+                            teacherName: teacherName
+                        },
+                        teacher.schoolId // Pass schoolId
+                    );
                 } catch (emailErr) {
                     console.error(`Email error for student ${student.id}:`, emailErr.message);
                 }

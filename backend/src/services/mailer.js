@@ -180,6 +180,53 @@ async function sendSWOTReportEmail(to, parentName, studentName, teacherName, swo
     });
 }
 
+/**
+ * Sends a complaint/notice from a teacher to a parent.
+ */
+async function sendTeacherComplaintEmail(to, parentName, teacherName, studentName, subject, body, schoolId) {
+    return sendEmail({
+        to,
+        subject: `Notice: ${subject}`,
+        html: `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <h2 style="color: #d32f2f;">Official Notice for ${studentName}</h2>
+                <p>Hello <b>${parentName}</b>,</p>
+                <p>You have received an official notice from <b>${teacherName}</b> regarding your child, <b>${studentName}</b>.</p>
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+                <div style="background: #fdfdfd; padding: 15px; border-left: 4px solid #d32f2f; margin-bottom: 20px;">
+                    <h3 style="margin-top: 0;">Subject: ${subject}</h3>
+                    <p style="white-space: pre-wrap;">${body}</p>
+                </div>
+                <p style="font-size: 0.9em; color: #666;">Please log in to the School Space portal for more details or to respond.</p>
+            </div>
+        `
+    });
+}
+
+/**
+ * Sends a final session report email to a parent.
+ */
+async function sendFinalSessionReportEmail(to, parentName, studentName, reportData, schoolId) {
+    return sendEmail({
+        to,
+        subject: `${reportData.session} Report for ${studentName}`,
+        html: `
+            <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <h2>${reportData.session} Performance Summary</h2>
+                <p>Hello <b>${parentName}</b>,</p>
+                <p>The performance report for <b>${studentName}</b> for <b>${reportData.session} (${reportData.year})</b> has been published.</p>
+                <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <p><b>Overall Percentage:</b> ${Math.round(reportData.totalPercentage)}%</p>
+                    <p><b>Attendance:</b> ${Math.round(reportData.attendancePercentage)}%</p>
+                    <p><b>Exam Average:</b> ${Math.round(reportData.examAverage)}%</p>
+                    <p><b>Teacher:</b> ${reportData.teacherName}</p>
+                </div>
+                <p>You can view the detailed analytics and SWOT reports in your parent dashboard.</p>
+            </div>
+        `
+    });
+}
+
 /* ================= EXPORTS ================= */
 
 module.exports = {
@@ -190,4 +237,6 @@ module.exports = {
     sendAdminNotification,
     sendSchoolCodeEmail,
     sendSWOTReportEmail,
+    sendTeacherComplaintEmail,
+    sendFinalSessionReportEmail,
 };
