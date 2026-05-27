@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 dotenv.config();
+
 const prisma = require('../prisma/prisma');
 const cors = require('cors');
 const path = require('path');
@@ -8,6 +9,7 @@ const fs = require('fs');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
+const frontendUrl = process.env.FRONTEND_URL || "Not set";
 // Mount Routes
 const signupRoutes = require(path.join(__dirname, 'controllers', 'auth', 'signup'));
 const loginRoutes = require(path.join(__dirname, 'controllers', 'auth', 'login'));
@@ -40,7 +42,7 @@ app.use((req, res, next) => {
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
   crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: false  // disabled — API server, not a user-facing app
+  contentSecurityPolicy: false  
 }));
 
 // Rate limiting
@@ -51,17 +53,16 @@ const limiter = rateLimit({
 });
 
 app.use('/api/login', limiter);
-app.use('/api/signup', limiter);
-app.use('/api/school-code', limiter);
+
 
 const allowedOrigins = [
-  "http://localhost:5173",
-  "https://my-school-space.vercel.app"
-];
+  process.env.FRONTEND_URL,
+  "http://localhost:3000"
+].filter(Boolean);
 
 app.use(cors({
   origin: function (origin, callback) {
-    // allow Postman / mobile apps / server-to-server
+    // allow server-to-server, Postman, mobile apps
     if (!origin) return callback(null, true);
 
     const isAllowed = allowedOrigins.some((allowed) =>
@@ -76,8 +77,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 200
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 /* ================= HEALTH CHECK (JSON) ================= */
@@ -91,33 +91,7 @@ app.get('/health', async (req, res) => {
   }
 });
 
-app.get('/debug-student', async (req, res) => {
-  try {
-    const student = await prisma.student.findFirst({
-      where: { firstName: { contains: 'Shrasta' } },
-      include: {
-        exammark: true,
-        Renamedclass: true
-      }
-    });
 
-    let publish = null;
-
-    if (student) {
-      publish = await prisma.schoolexampublish.findFirst({
-        where: {
-          schoolId: student.schoolId,
-          examTerminal: '1st Term'
-        }
-      });
-    }
-
-    res.json({ student, publish });
-
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
 
 /* ================= API STATUS PAGE ================= */
 app.get('/', async (req, res) => {
@@ -138,52 +112,68 @@ app.get('/', async (req, res) => {
   const uptimeStr = `${h}h ${m}m ${s}s`;
 
   const routes = [
-    { group: 'Auth', method: 'POST', path: '/api/signup/admin', desc: 'Admin registration' },
-    { group: 'Auth', method: 'POST', path: '/api/signup/teacher', desc: 'Teacher registration' },
-    { group: 'Auth', method: 'POST', path: '/api/signup/student', desc: 'Student registration' },
-    { group: 'Auth', method: 'POST', path: '/api/signup/parent', desc: 'Parent registration' },
-    { group: 'Auth', method: 'POST', path: '/api/login', desc: 'Login (all roles)' },
-    { group: 'Auth', method: 'POST', path: '/api/verify/email', desc: 'Verify OTP' },
-    { group: 'Auth', method: 'POST', path: '/api/verify/resend-code', desc: 'Resend OTP' },
-    { group: 'Auth', method: 'GET', path: '/api/auth/me', desc: 'Check session' },
-    { group: 'Auth', method: 'POST', path: '/api/password/request', desc: 'Request password reset' },
-    { group: 'Auth', method: 'POST', path: '/api/password/reset', desc: 'Reset password' },
-    { group: 'Auth', method: 'POST', path: '/api/school-code/request', desc: 'Request school code recovery' },
-    { group: 'Admin', method: 'GET', path: '/api/admin/overview', desc: 'School overview' },
-    { group: 'Admin', method: 'GET', path: '/api/admin/teachers-by-class', desc: 'Teachers by class' },
-    { group: 'Admin', method: 'GET', path: '/api/admin/pending-teachers', desc: 'Pending teacher approvals' },
-    { group: 'Admin', method: 'GET', path: '/api/admin/students', desc: 'All students' },
-    { group: 'Admin', method: 'GET', path: '/api/admin/classes', desc: 'All classes' },
-    { group: 'Admin', method: 'GET', path: '/api/admin/notifications', desc: 'Admin notifications' },
-    { group: 'Admin', method: 'GET', path: '/api/admin/reviews', desc: 'Teacher reviews' },
-    { group: 'Admin', method: 'GET', path: '/api/admin/messages/requests', desc: 'Parent message requests' },
-    { group: 'Admin', method: 'PATCH', path: '/api/admin/settings', desc: 'Update school settings' },
-    { group: 'Admin', method: 'GET', path: '/api/admin/exam-submissions', desc: 'Exam submissions' },
-    { group: 'Admin', method: 'GET', path: '/api/password/admin/requests', desc: 'Password reset requests' },
-    { group: 'Teacher', method: 'GET', path: '/api/teacher/dashboard/overview', desc: 'Teacher overview' },
-    { group: 'Teacher', method: 'GET', path: '/api/teacher/dashboard/profile', desc: 'Teacher profile' },
-    { group: 'Teacher', method: 'GET', path: '/api/attendance/classes', desc: 'Classes for attendance' },
-    { group: 'Teacher', method: 'POST', path: '/api/attendance/save', desc: 'Save attendance' },
-    { group: 'Teacher', method: 'GET', path: '/api/attendance/history/:classId', desc: 'Attendance history' },
-    { group: 'Teacher', method: 'POST', path: '/api/assignments/create', desc: 'Create assignment' },
-    { group: 'Teacher', method: 'GET', path: '/api/assignments/teacher', desc: 'Teacher assignments' },
-    { group: 'Teacher', method: 'POST', path: '/api/assignments/grade', desc: 'Grade submission' },
-    { group: 'Teacher', method: 'POST', path: '/api/materials/create', desc: 'Upload study material' },
-    { group: 'Teacher', method: 'GET', path: '/api/materials/teacher', desc: 'Teacher materials' },
-    { group: 'Teacher', method: 'GET', path: '/api/teacher/dashboard/student/approvals', desc: 'Pending student approvals' },
-    { group: 'Teacher', method: 'POST', path: '/api/teacher/dashboard/send-complaint', desc: 'Send complaint to parent' },
-    { group: 'Student', method: 'GET', path: '/api/student/dashboard', desc: 'Student dashboard' },
-    { group: 'Student', method: 'GET', path: '/api/assignments/student', desc: 'Student assignments' },
-    { group: 'Student', method: 'POST', path: '/api/assignments/submit', desc: 'Submit assignment' },
-    { group: 'Student', method: 'GET', path: '/api/materials/student', desc: 'View study materials' },
-    { group: 'Student', method: 'POST', path: '/api/student/rate', desc: 'Rate a teacher' },
-    { group: 'Student', method: 'GET', path: '/api/materials/quiz/history', desc: 'Quiz history' },
-    { group: 'Parent', method: 'GET', path: '/api/parent/dashboard/overview', desc: 'Parent overview' },
-    { group: 'Parent', method: 'GET', path: '/api/parent/dashboard/children/performance', desc: 'Child analytics' },
-    { group: 'Parent', method: 'POST', path: '/api/parent/dashboard/messages/send', desc: 'Send message to admin' },
-    { group: 'Parent', method: 'GET', path: '/api/parent/feedback/children', desc: 'Children for feedback' },
-    { group: 'Parent', method: 'POST', path: '/api/parent/feedback/request', desc: 'Request SWOT feedback' },
-  ];
+  // ================= AUTH =================
+  { group: 'Auth', method: 'POST', path: '/api/signup/admin', desc: 'Admin registration' },
+  { group: 'Auth', method: 'POST', path: '/api/signup/teacher', desc: 'Teacher registration' },
+  { group: 'Auth', method: 'POST', path: '/api/signup/student', desc: 'Student registration' },
+  { group: 'Auth', method: 'POST', path: '/api/signup/parent', desc: 'Parent registration' },
+
+  { group: 'Auth', method: 'POST', path: '/api/login', desc: 'Login (all roles)' },
+  { group: 'Auth', method: 'POST', path: '/api/verify/email', desc: 'Verify OTP' },
+  { group: 'Auth', method: 'POST', path: '/api/verify/resend-code', desc: 'Resend OTP' },
+  { group: 'Auth', method: 'GET', path: '/api/auth/me', desc: 'Check session' },
+
+  { group: 'Auth', method: 'POST', path: '/api/password/request', desc: 'Request password reset' },
+  { group: 'Auth', method: 'POST', path: '/api/password/reset', desc: 'Reset password' },
+
+  { group: 'Auth', method: 'POST', path: '/api/school-code/request', desc: 'Request school code recovery' },
+
+  // ================= ADMIN =================
+  { group: 'Admin', method: 'GET', path: '/api/admin/overview', desc: 'School overview' },
+  { group: 'Admin', method: 'GET', path: '/api/admin/teachers-by-class', desc: 'Teachers by class' },
+  { group: 'Admin', method: 'GET', path: '/api/admin/pending-teachers', desc: 'Pending teacher approvals' },
+  { group: 'Admin', method: 'GET', path: '/api/admin/students', desc: 'All students' },
+  { group: 'Admin', method: 'GET', path: '/api/admin/classes', desc: 'All classes' },
+  { group: 'Admin', method: 'GET', path: '/api/admin/notifications', desc: 'Admin notifications' },
+  { group: 'Admin', method: 'GET', path: '/api/admin/reviews', desc: 'Teacher reviews' },
+  { group: 'Admin', method: 'GET', path: '/api/admin/messages/requests', desc: 'Parent message requests' },
+  { group: 'Admin', method: 'PATCH', path: '/api/admin/settings', desc: 'Update school settings' },
+  { group: 'Admin', method: 'GET', path: '/api/admin/exam-submissions', desc: 'Exam submissions' },
+  { group: 'Admin', method: 'GET', path: '/api/password/admin/requests', desc: 'Password reset requests' },
+
+  // ================= TEACHER =================
+  { group: 'Teacher', method: 'GET', path: '/api/teacher/dashboard/overview', desc: 'Teacher overview' },
+  { group: 'Teacher', method: 'GET', path: '/api/teacher/dashboard/profile', desc: 'Teacher profile' },
+
+  { group: 'Teacher', method: 'GET', path: '/api/attendance/classes', desc: 'Classes for attendance' },
+  { group: 'Teacher', method: 'POST', path: '/api/attendance/save', desc: 'Save attendance' },
+  { group: 'Teacher', method: 'GET', path: '/api/attendance/history/:classId', desc: 'Attendance history' },
+
+  { group: 'Teacher', method: 'POST', path: '/api/assignments/create', desc: 'Create assignment' },
+  { group: 'Teacher', method: 'GET', path: '/api/assignments/teacher', desc: 'Teacher assignments' },
+  { group: 'Teacher', method: 'POST', path: '/api/assignments/grade', desc: 'Grade submission' },
+
+  { group: 'Teacher', method: 'POST', path: '/api/materials/create', desc: 'Upload study material' },
+  { group: 'Teacher', method: 'GET', path: '/api/materials/teacher', desc: 'Teacher materials' },
+
+  { group: 'Teacher', method: 'GET', path: '/api/teacher/dashboard/student/approvals', desc: 'Pending student approvals' },
+  { group: 'Teacher', method: 'POST', path: '/api/teacher/dashboard/send-complaint', desc: 'Send complaint to parent' },
+
+  // ================= STUDENT =================
+  { group: 'Student', method: 'GET', path: '/api/student/dashboard', desc: 'Student dashboard' },
+  { group: 'Student', method: 'GET', path: '/api/assignments/student', desc: 'Student assignments' },
+  { group: 'Student', method: 'POST', path: '/api/assignments/submit', desc: 'Submit assignment' },
+  { group: 'Student', method: 'GET', path: '/api/materials/student', desc: 'View study materials' },
+  { group: 'Student', method: 'POST', path: '/api/student/rate', desc: 'Rate a teacher' },
+  { group: 'Student', method: 'GET', path: '/api/materials/quiz/history', desc: 'Quiz history' },
+
+  // ================= PARENT =================
+  { group: 'Parent', method: 'GET', path: '/api/parent/dashboard/overview', desc: 'Parent overview' },
+  { group: 'Parent', method: 'GET', path: '/api/parent/dashboard/children/performance', desc: 'Child analytics' },
+  { group: 'Parent', method: 'POST', path: '/api/parent/dashboard/messages/send', desc: 'Send message to admin' },
+  { group: 'Parent', method: 'GET', path: '/api/parent/feedback/children', desc: 'Children for feedback' },
+  { group: 'Parent', method: 'POST', path: '/api/parent/feedback/request', desc: 'Request SWOT feedback' },
+];
 
   const groups = [...new Set(routes.map(r => r.group))];
   const methodColor = { GET: '#2563eb', POST: '#16a34a', PATCH: '#d97706', PUT: '#7c3aed', DELETE: '#dc2626' };
@@ -275,11 +265,13 @@ app.get('/', async (req, res) => {
     <div class="card-sub">Node ${process.version}</div>
   </div>
   <div class="card">
-    <div class="card-label">Frontend</div>
-    <div class="card-value" style="font-size:14px;">localhost:3000</div>
-    <div class="card-sub">CORS allowed</div>
+   <div class="card-label">Frontend</div>
+   <div class="card-value" style="font-size:14px;">
+    ${frontendUrl}
+   </div>
+   <div class="card-sub">CORS allowed</div>
+   </div>
   </div>
-</div>
 
 <section>
   <h2>Quick Checks</h2>

@@ -32,12 +32,12 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// Client ID should be in .env file as VITE_GOOGLE_CLIENT_ID
-
 createRoot(document.getElementById('root')).render(
-  <ErrorBoundary>
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-      <App />
-    </GoogleOAuthProvider>
-  </ErrorBoundary>
+  <StrictMode>
+    <ErrorBoundary>
+      <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+        <App />
+      </GoogleOAuthProvider>
+    </ErrorBoundary>
+  </StrictMode>
 )

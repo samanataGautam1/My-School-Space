@@ -21,8 +21,8 @@ export const sendBrowserNotification = async (title, body) => {
     if (hasPermission) {
         new Notification(title, {
             body: body,
-            icon: '/vite.svg', // Optional: use app logo if available
-            requireInteraction: true // Keep it on screen until user interacts
+            icon: '/logo.png', 
+            requireInteraction: true 
         });
     }
 };
