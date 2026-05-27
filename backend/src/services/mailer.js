@@ -2,6 +2,13 @@ require("dotenv").config();
 const { Resend } = require('resend');
 
 const nodemailer = require("nodemailer");
+const dns = require("dns");
+
+// 🌐 Force Node.js to prefer IPv4 over IPv6. 
+// This fixes the 'ENETUNREACH' error on networks with broken IPv6 routing.
+if (dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder('ipv4first');
+}
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -62,8 +69,8 @@ async function sendEmail({ to, subject, html, smtpUser, smtpPass }) {
 
         const transporter = nodemailer.createTransport({
             host: 'smtp.gmail.com',
-            port: 465,
-            secure: true, // Use SSL/TLS
+            port: 587,
+            secure: false, // use STARTTLS
             auth: { user, pass },
             family: 4, // 🔌 Force IPv4 to avoid ENETUNREACH IPv6 errors
             connectionTimeout: 10000,
