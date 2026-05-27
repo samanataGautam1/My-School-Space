@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require("../../../prisma/prisma");
 const { authMiddleware, allowRoles } = require('../../middleware/auth');
 const { calculateStudentMetrics, calculateEffortPercentage, getClassBaselines } = require('./analyticsHelper');
 
@@ -8,7 +8,6 @@ const { calculateStudentMetrics, calculateEffortPercentage, getClassBaselines } 
 // agree on what "+90.6" means. Frontends render the number as-is.
 const round1 = (x) => Number(((+x) || 0).toFixed(1));
 const { evaluateSubjectResult } = require('../../utils/nepalGrading');
-const prisma = new PrismaClient();
 const router = express.Router();
 
 

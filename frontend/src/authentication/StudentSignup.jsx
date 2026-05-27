@@ -23,10 +23,12 @@ export default function StudentSignup() {
     });
     const [error, setError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
+        setIsLoading(true);
 
         // School Code Validation
         const schoolCodeRegex = /^[A-Z]{2}\d{2}$/;
@@ -55,6 +57,7 @@ export default function StudentSignup() {
             setError(result.message);
             setFormData(prev => ({ ...prev, password: "" }));
         }
+        setIsLoading(false);
     };
 
     return (
@@ -183,7 +186,7 @@ export default function StudentSignup() {
 
                 {error && <p className="text-red-500 text-xs">{error}</p>}
 
-                <Button type="submit" className="w-full bg-green-950 hover:bg-green-900 text-white font-bold h-10 rounded-xl text-sm mt-3 shadow-md">
+                <Button type="submit" loading={isLoading} className="w-full bg-green-950 hover:bg-green-900 text-white font-bold h-10 rounded-xl text-sm mt-3 shadow-md">
                     Register as Student
                 </Button>
             </form>

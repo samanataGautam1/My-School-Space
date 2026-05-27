@@ -1,9 +1,8 @@
 ﻿const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const prisma = require("../../../prisma/prisma");
 const { authMiddleware, allowRoles } = require('../../middleware/auth');
 
-const prisma = new PrismaClient();
 
 // Only teachers can access these routes
 router.use(authMiddleware, allowRoles('TEACHER'));
@@ -27,8 +26,8 @@ router.get('/classes', async (req, res) => {
 
         // Fetch classes where the teacher is the Class Head
         const headClasses = await prisma.renamedclass.findMany({
-            where: { 
-                classHeadId: teacher.id 
+            where: {
+                classHeadId: teacher.id
             }
         });
 
@@ -116,7 +115,7 @@ router.get('/students/:classId', async (req, res) => {
         }
 
         const students = await prisma.student.findMany({
-            where: { 
+            where: {
                 classId: parseInt(classId),
                 isApproved: true
             },
@@ -305,8 +304,8 @@ router.post('/save', async (req, res) => {
         res.json({ ok: true, message: "Attendance saved successfully" });
     } catch (error) {
         console.error("Save attendance error:", error);
-        res.status(500).json({ 
-            error: "Failed to save attendance", 
+        res.status(500).json({
+            error: "Failed to save attendance",
             details: error.message,
             prismaCode: error.code
         });

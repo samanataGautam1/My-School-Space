@@ -1,10 +1,9 @@
 ﻿const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require("../../../prisma/prisma");
 const { authMiddleware, allowRoles } = require('../../middleware/auth');
 const fs = require('fs');
 const path = require('path');
 const { uploadToCloudinary, deleteFromCloudinary, isCloudinaryConfigured, extractPublicId, isCloudinaryUrl } = require('../../utils/cloudinary');
-const prisma = new PrismaClient();
 const router = express.Router();
 
 // Configure Multer for File Uploads (Lazy Loaded)
@@ -205,8 +204,8 @@ router.get('/teacher', authMiddleware, allowRoles('TEACHER'), async (req, res) =
 
         const materials = await prisma.studymaterial.findMany({
             where: { teacherId: teacher.id },
-            include: { 
-                Renamedclass: true, 
+            include: {
+                Renamedclass: true,
                 subject: true,
                 quizsets: {
                     include: { questions: true }
@@ -248,13 +247,13 @@ router.get('/student', authMiddleware, allowRoles('STUDENT'), async (req, res) =
 
         // Get all response IDs for this student to quickly check completion (only non-empty answers)
         const studentResponses = await prisma.quizresponse.findMany({
-            where: { 
+            where: {
                 studentId: student.id,
                 NOT: { answer: "" }
             },
             select: { questionId: true, answer: true }
         });
-        
+
         // Further filter for whitespace only in JS
         const validRespondedQuestionIds = new Set(
             studentResponses
@@ -396,7 +395,7 @@ router.get('/analytics/:id', authMiddleware, allowRoles('TEACHER'), async (req, 
         // Map status to student
         const analytics = await Promise.all(students.map(async student => {
             const statusRecord = statuses.find(s => s.studentId === student.id);
-            
+
             // Get responses for this student and material
             const responses = await prisma.quizresponse.findMany({
                 where: {
@@ -414,7 +413,7 @@ router.get('/analytics/:id', authMiddleware, allowRoles('TEACHER'), async (req, 
 
             const validResponses = responses.filter(r => r.answer && r.answer.trim() !== "");
             const filteredCount = validResponses.length;
-            
+
 
             return {
                 studentId: student.id,
@@ -532,7 +531,7 @@ router.get('/quiz/history', authMiddleware, allowRoles('STUDENT'), async (req, r
 router.post('/quiz/feedback', authMiddleware, allowRoles('TEACHER'), async (req, res) => {
     try {
         const { responseId, feedback, isCorrect } = req.body;
-        
+
         const updated = await prisma.quizresponse.update({
             where: { id: parseInt(responseId) },
             data: {

@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require("../../../prisma/prisma");
 const { authMiddleware, allowRoles } = require('../../middleware/auth');
 const { finalizeSessionAssignments } = require('../teacher/performanceHelper');
 const { getNextSession } = require(path.join(__dirname, 'sessionDates.js'));
@@ -8,7 +8,6 @@ const mailer = require('../../services/mailer');
 const { getGradeFromMarks, evaluateSubjectResult, calculateOverallGPA, getGradeTable } = require('../../utils/nepalGrading');
 const NT = require('../../utils/notificationTypes');
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 // NOTE: one-time data seeding was here, moved to a migration script.

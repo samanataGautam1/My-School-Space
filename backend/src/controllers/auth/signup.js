@@ -1,6 +1,6 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
-const { PrismaClient } = require("@prisma/client");
+const prisma = require("../../../prisma/prisma");
 const crypto = require("crypto");
 const {
   validateName,
@@ -15,7 +15,6 @@ const {
   validateStudentCodes
 } = require("../../utils/validators");
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 const generateStudentCode = (schoolCode) => {

@@ -143,15 +143,9 @@ export function AuthProvider({ children }) {
     };
 
     const registerStudent = async (name, username, password, schoolCode, className, rollNo, email) => {
-        setLoading(true);
-        try {
-            const result = await authService.registerStudent({
-                name, username, password, schoolCode, className, rollNo, email
-            });
-            return result;
-        } finally {
-            setLoading(false);
-        }
+        return authService.registerStudent({
+            name, username, password, schoolCode, className, rollNo, email
+        });
     };
 
     const registerParent = async (email, username, password, schoolCode, studentCode, name) => {

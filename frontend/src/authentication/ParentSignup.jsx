@@ -34,6 +34,7 @@ export default function ParentSignup() {
     });
     const [error, setError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const addStudentField = () => {
         if (formData.studentCodes.length < 5) {
@@ -63,6 +64,7 @@ export default function ParentSignup() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
+        setIsLoading(true);
 
         // School Code Validation
         const schoolCodeRegex = /^[A-Z]{2}\d{2}$/;
@@ -105,6 +107,7 @@ export default function ParentSignup() {
             setError(result.message);
             setFormData(prev => ({ ...prev, password: "" }));
         }
+        setIsLoading(false);
     };
 
     const handleGoogleLogin = () => {
@@ -187,30 +190,30 @@ export default function ParentSignup() {
                 </div>
 
                 {/* School Code */}
-<div>
-    <label className="block text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">
-        School Code
-    </label>
+                <div>
+                    <label className="block text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">
+                        School Code
+                    </label>
 
-    <input
-        type="text"
-        className="w-full h-8 px-3 rounded-lg bg-gray-50 border border-slate-200 text-slate-900 focus:bg-white focus:ring-2 focus:ring-green-950 transition-all placeholder:text-slate-400 text-sm uppercase"
-        placeholder="AB12"
-        value={formData.schoolCode}
-        onChange={e =>
-            setFormData({
-                ...formData,
-                schoolCode: e.target.value.toUpperCase()
-            })
-        }
-        maxLength={4}
-        required
-    />
+                    <input
+                        type="text"
+                        className="w-full h-8 px-3 rounded-lg bg-gray-50 border border-slate-200 text-slate-900 focus:bg-white focus:ring-2 focus:ring-green-950 transition-all placeholder:text-slate-400 text-sm uppercase"
+                        placeholder="AB12"
+                        value={formData.schoolCode}
+                        onChange={e =>
+                            setFormData({
+                                ...formData,
+                                schoolCode: e.target.value.toUpperCase()
+                            })
+                        }
+                        maxLength={4}
+                        required
+                    />
 
-    <p className="text-[9px] text-slate-400 mt-1 ml-1">
-        Format: 2 letters + 2 numbers (Example: AB12)
-    </p>
-</div>
+                    <p className="text-[9px] text-slate-400 mt-1 ml-1">
+                        Format: 2 letters + 2 numbers (Example: AB12)
+                    </p>
+                </div>
 
                 <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -273,11 +276,11 @@ export default function ParentSignup() {
 
                 {error && <p className="text-red-500 text-xs">{error}</p>}
 
-                <Button type="submit" className="w-full bg-green-950 hover:bg-green-900 text-white font-bold h-10 rounded-xl text-sm mt-2 shadow-md">
+                <Button type="submit" loading={isLoading} className="w-full bg-green-950 hover:bg-green-900 text-white font-bold h-10 rounded-xl text-sm mt-2 shadow-md">
                     Register as Parent
                 </Button>
 
-                
+
             </form>
         </AuthLayout>
     );

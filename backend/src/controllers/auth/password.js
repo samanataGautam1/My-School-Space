@@ -1,12 +1,11 @@
 const express = require('express');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require("../../../prisma/prisma");
 const { sendResetEmail, sendAdminNotification } = require('../../services/mailer');
 const { authMiddleware, allowRoles } = require('../../middleware/auth');
 const { validatePassword } = require('../../utils/validators');
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 

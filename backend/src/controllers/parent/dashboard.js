@@ -1,10 +1,9 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require("../../../prisma/prisma");
 const { authMiddleware, allowRoles } = require('../../middleware/auth');
 const { calculateStudentMetrics } = require('../teacher/analyticsHelper');
 const { getGradeFromMarks, evaluateSubjectResult, calculateOverallGPA } = require('../../utils/nepalGrading');
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 router.use(authMiddleware, allowRoles('PARENT'));
@@ -209,7 +208,7 @@ router.get('/children/performance', async (req, res) => {
 
         const sessionStartMonth = startDate.getMonth();
         const boundedEndDate = new Date(Math.min(endDate.getTime(), Date.now()));
-        
+
         // FALLBACK LOGIC: If the active session has no calculation record, 
         // try to find the most recent COMPLETED session for this school.
         let actualActiveSession = activeSession;
@@ -281,7 +280,7 @@ router.get('/children/performance', async (req, res) => {
             }
 
             const metrics = await calculateStudentMetrics(student.id, student.classId, startDate, boundedEndDate, studentSession, activeYear);
-            
+
             // Calculate Trendlines (simplified for consistency)
             const performanceTrendline = [];
             const potentialTrendline = [];
@@ -332,7 +331,7 @@ router.get('/children/performance', async (req, res) => {
                     score: Math.round(score)
                 });
             });
-            
+
             const perfValue = typeof metrics.performance === 'number' ? metrics.performance : (metrics.finalPerformance || 0);
             const potValue = typeof metrics.potential === 'number' ? metrics.potential : (metrics.finalPotential || 0);
 
@@ -692,12 +691,12 @@ router.get('/teacher-messages/unread-count', async (req, res) => {
 /* ================= DAILY BRIEFING ================= */
 
 router.get('/daily-briefing', async (req, res) => {
-    const log = () => {};
+    const log = () => { };
 
     try {
         const userId = Number(req.user.userId);
         log(`>>> Request for UserID: ${userId}`);
-        
+
         const parent = await prisma.parent.findUnique({
             where: { userId: userId },
             include: {
@@ -745,12 +744,12 @@ router.get('/daily-briefing', async (req, res) => {
                     else if (status === 'S') msg = `${name}'s attendance was skipped today.`;
 
                     if (msg) {
-                        alerts.push({ 
-                            type: 'ATTENDANCE', 
-                            message: msg, 
-                            studentId: child.id, 
-                            status, 
-                            createdAt: new Date() 
+                        alerts.push({
+                            type: 'ATTENDANCE',
+                            message: msg,
+                            studentId: child.id,
+                            status,
+                            createdAt: new Date()
                         });
                         log(`[ATTENDANCE] Added alert for student ${child.id}`);
                     }
@@ -848,8 +847,8 @@ router.get('/daily-briefing', async (req, res) => {
             for (const notice of adminNotices) {
                 const noticeType = notice.type === 'RESULT_PUBLISHED' ? 'RESULT_PUBLISHED'
                     : notice.type === 'PROMOTION' ? 'PROMOTION'
-                    : notice.type === 'GRADUATION' ? 'GRADUATION'
-                    : 'ADMIN_NOTICE';
+                        : notice.type === 'GRADUATION' ? 'GRADUATION'
+                            : 'ADMIN_NOTICE';
                 alerts.push({
                     type: noticeType,
                     message: notice.message,
@@ -866,14 +865,14 @@ router.get('/daily-briefing', async (req, res) => {
 
         // Sorting
         const priorityScore = {
-            'GRADUATION':       0,
-            'ADMIN_NOTICE':     1,
-            'PROMOTION':        2,
+            'GRADUATION': 0,
+            'ADMIN_NOTICE': 1,
+            'PROMOTION': 2,
             'RESULT_PUBLISHED': 3,
-            'ATTENDANCE':       4,
-            'FEEDBACK':         5,
-            'COMPLAINT':        6,
-            'CHAT_APPROVED':    7
+            'ATTENDANCE': 4,
+            'FEEDBACK': 5,
+            'COMPLAINT': 6,
+            'CHAT_APPROVED': 7
         };
 
         alerts.sort((a, b) => {
@@ -889,7 +888,7 @@ router.get('/daily-briefing', async (req, res) => {
     } catch (err) {
         log(`CRITICAL ERROR: ${err.message}\n${err.stack}`);
         res.status(500).json({
-            error: 'Failed to fetch daily briefing', 
+            error: 'Failed to fetch daily briefing',
             details: err.message,
             stack: err.stack
         });
@@ -922,7 +921,7 @@ router.get('/child/:studentId/monthly-performance', async (req, res) => {
 
         const activeYear = parseInt(year) || student.school?.activePerformanceYear || 2026;
         const selectedMonth = parseInt(month);
-        
+
         // Date Range Logic
         let startDate, endDate;
         if (calendar === 'NEPALI') {
@@ -1057,7 +1056,7 @@ router.get('/child/:studentId/terminal-marks', async (req, res) => {
 
         const prefix = terminal.split(' ')[0];
         const marks = await prisma.exammark.findMany({
-            where: { 
+            where: {
                 studentId: parseInt(studentId),
                 examTerminal: { startsWith: prefix }
             },
@@ -1198,83 +1197,83 @@ router.get('/student/:studentId/grade-sheet/:terminal', async (req, res) => {
 
 // GET /child/:studentId/attendance — Attendance report for parent
 router.get('/child/:studentId/attendance', async (req, res) => {
-  try {
-    const { studentId } = req.params;
-    const { month, year } = req.query;
-    const userId = Number(req.user.userId);
+    try {
+        const { studentId } = req.params;
+        const { month, year } = req.query;
+        const userId = Number(req.user.userId);
 
-    // Verify parent-student link
-    const parent = await prisma.parent.findUnique({
-      where: { userId },
-      include: { student: { where: { id: parseInt(studentId) } } }
-    });
-    if (!parent || parent.student.length === 0) {
-      return res.status(403).json({ error: 'Access denied' });
+        // Verify parent-student link
+        const parent = await prisma.parent.findUnique({
+            where: { userId },
+            include: { student: { where: { id: parseInt(studentId) } } }
+        });
+        if (!parent || parent.student.length === 0) {
+            return res.status(403).json({ error: 'Access denied' });
+        }
+
+        const student = await prisma.student.findUnique({
+            where: { id: parseInt(studentId) },
+            include: { Renamedclass: true }
+        });
+        if (!student) return res.status(404).json({ error: 'Student not found' });
+
+        // Build date filter
+        const where = { studentId: parseInt(studentId) };
+        if (month && year) {
+            const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+            const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59);
+            where.date = { gte: startDate, lte: endDate };
+        } else if (year) {
+            const startDate = new Date(parseInt(year), 0, 1);
+            const endDate = new Date(parseInt(year), 11, 31, 23, 59, 59);
+            where.date = { gte: startDate, lte: endDate };
+        }
+
+        const records = await prisma.attendance.findMany({
+            where,
+            orderBy: { date: 'desc' },
+            select: { id: true, date: true, status: true }
+        });
+
+        const total = records.length;
+        const present = records.filter(r => r.status === 'P').length;
+        const absent = records.filter(r => r.status === 'A').length;
+        const late = records.filter(r => r.status === 'L').length;
+        const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
+
+        // Group by month for chart
+        const monthlyData = {};
+        records.forEach(r => {
+            const d = new Date(r.date);
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            if (!monthlyData[key]) monthlyData[key] = { total: 0, present: 0, absent: 0, late: 0 };
+            monthlyData[key].total++;
+            if (r.status === 'P') monthlyData[key].present++;
+            else if (r.status === 'A') monthlyData[key].absent++;
+            else if (r.status === 'L') monthlyData[key].late++;
+        });
+
+        const monthly = Object.entries(monthlyData)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([key, data]) => ({
+                month: key,
+                label: new Date(key + '-01').toLocaleString('default', { month: 'short', year: 'numeric' }),
+                ...data,
+                percentage: data.total > 0 ? Math.round((data.present / data.total) * 100) : 0
+            }));
+
+        res.json({
+            ok: true,
+            data: {
+                student: { name: `${student.firstName} ${student.lastName}`, className: `${student.Renamedclass?.name || ''}${student.Renamedclass?.section || ''}` },
+                summary: { total, present, absent, late, percentage },
+                monthly,
+                records: records.map(r => ({ date: r.date, status: r.status }))
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch attendance' });
     }
-
-    const student = await prisma.student.findUnique({
-      where: { id: parseInt(studentId) },
-      include: { Renamedclass: true }
-    });
-    if (!student) return res.status(404).json({ error: 'Student not found' });
-
-    // Build date filter
-    const where = { studentId: parseInt(studentId) };
-    if (month && year) {
-      const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
-      const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59);
-      where.date = { gte: startDate, lte: endDate };
-    } else if (year) {
-      const startDate = new Date(parseInt(year), 0, 1);
-      const endDate = new Date(parseInt(year), 11, 31, 23, 59, 59);
-      where.date = { gte: startDate, lte: endDate };
-    }
-
-    const records = await prisma.attendance.findMany({
-      where,
-      orderBy: { date: 'desc' },
-      select: { id: true, date: true, status: true }
-    });
-
-    const total = records.length;
-    const present = records.filter(r => r.status === 'P').length;
-    const absent = records.filter(r => r.status === 'A').length;
-    const late = records.filter(r => r.status === 'L').length;
-    const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
-
-    // Group by month for chart
-    const monthlyData = {};
-    records.forEach(r => {
-      const d = new Date(r.date);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      if (!monthlyData[key]) monthlyData[key] = { total: 0, present: 0, absent: 0, late: 0 };
-      monthlyData[key].total++;
-      if (r.status === 'P') monthlyData[key].present++;
-      else if (r.status === 'A') monthlyData[key].absent++;
-      else if (r.status === 'L') monthlyData[key].late++;
-    });
-
-    const monthly = Object.entries(monthlyData)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, data]) => ({
-        month: key,
-        label: new Date(key + '-01').toLocaleString('default', { month: 'short', year: 'numeric' }),
-        ...data,
-        percentage: data.total > 0 ? Math.round((data.present / data.total) * 100) : 0
-      }));
-
-    res.json({
-      ok: true,
-      data: {
-        student: { name: `${student.firstName} ${student.lastName}`, className: `${student.Renamedclass?.name || ''}${student.Renamedclass?.section || ''}` },
-        summary: { total, present, absent, late, percentage },
-        monthly,
-        records: records.map(r => ({ date: r.date, status: r.status }))
-      }
-    });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch attendance' });
-  }
 });
 
 module.exports = router;

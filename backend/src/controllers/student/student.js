@@ -1,8 +1,7 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require("../../../prisma/prisma");
 const { authMiddleware } = require('../../middleware/auth');
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Block graduated students from hitting any feature endpoint. Allowed endpoints
 // (`/graduation-status`, `/acknowledge-graduation`) opt out by being registered
@@ -330,12 +329,12 @@ router.get('/performance', authMiddleware, blockIfGraduated, async (req, res) =>
             const next = getNextSession(activeSession, activeYear);
             activeSession = next.nextSession;
             activeYear = next.nextYear;
-            
+
             await prisma.school.update({
                 where: { id: student.schoolId },
                 data: { activePerformanceSession: activeSession, activePerformanceYear: activeYear }
             });
-            
+
             const newBounds = getSessionDateRange(activeSession, activeYear);
             startDate = newBounds.startDate;
             endDate = newBounds.endDate;
@@ -372,8 +371,8 @@ router.get('/performance', authMiddleware, blockIfGraduated, async (req, res) =>
         if (isCalculated) {
             // 1. Exam Marks -> 60%
             const examMarks = await prisma.exammark.findMany({
-                where: { 
-                    studentId: student.id, 
+                where: {
+                    studentId: student.id,
                     examTerminal: { startsWith: termPrefix },
                     createdAt: { gte: startDate, lte: boundedEndDate }
                 }
@@ -393,7 +392,7 @@ router.get('/performance', authMiddleware, blockIfGraduated, async (req, res) =>
 
             // 2. Attendance -> 10%
             const attendance = await prisma.attendance.findMany({
-                where: { 
+                where: {
                     studentId: student.id,
                     date: { gte: startDate, lte: boundedEndDate }
                 },
@@ -430,7 +429,7 @@ router.get('/performance', authMiddleware, blockIfGraduated, async (req, res) =>
                 const latest = potentialMetrics[0];
                 const eff = latest.effortTotal ?? latest.effort ?? 0;
                 const cur = latest.curiosityTotal ?? latest.curiosity ?? 0;
-                const ls  = latest.learningSpeed ?? 0;
+                const ls = latest.learningSpeed ?? 0;
                 potentialBreakdown = {
                     effort: eff,
                     curiosity: cur,

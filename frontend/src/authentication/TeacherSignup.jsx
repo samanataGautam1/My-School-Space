@@ -26,6 +26,7 @@ export default function TeacherSignup() {
         email: "",
         schoolCode: ""
     });
+    const [isLoading, setIsLoading] = useState(false);
 
     const addAssignment = () => {
         if (currentSubject.trim() && currentClass.trim()) {
@@ -45,6 +46,7 @@ export default function TeacherSignup() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
+        setIsLoading(true);
 
         let finalAssignments = [...assignments];
 
@@ -125,6 +127,7 @@ export default function TeacherSignup() {
             setError(result.message);
             setFormData(prev => ({ ...prev, password: "" }));
         }
+        setIsLoading(false);
     };
 
     const handleGoogleLogin = () => {
@@ -343,7 +346,7 @@ export default function TeacherSignup() {
                     )
                 }
 
-                <Button type="submit" className="w-full bg-green-950 hover:bg-green-900 text-white font-bold h-10 rounded-xl text-sm mt-2 shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                <Button type="submit" loading={isLoading} className="w-full bg-green-950 hover:bg-green-900 text-white font-bold h-10 rounded-xl text-sm mt-2 shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
                     Create Teacher Account <ArrowRight className="w-4 h-4 opacity-80" />
                 </Button>
 

@@ -62,7 +62,10 @@ async function sendEmail({ to, subject, html, smtpUser, smtpPass }) {
 
         const transporter = nodemailer.createTransport({
             service: 'gmail',
-            auth: { user, pass }
+            auth: { user, pass },
+            connectionTimeout: 10000, // 10 seconds
+            greetingTimeout: 10000,   // 10 seconds
+            socketTimeout: 20000      // 20 seconds
         });
 
         const info = await transporter.sendMail({

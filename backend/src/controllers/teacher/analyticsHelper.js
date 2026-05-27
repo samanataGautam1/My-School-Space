@@ -1,6 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require("../../../prisma/prisma");
 const path = require('path');
-const prisma = new PrismaClient();
+
 const { getSessionDateRange } = require(path.join(__dirname, '../admin/sessionDates'));
 const { calculatePerformance } = require('../../utils/performanceCalculator');
 const { calculatePotential } = require('../../utils/potentialCalculator');

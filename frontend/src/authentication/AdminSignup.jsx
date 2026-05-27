@@ -237,8 +237,8 @@ export default function AdminSignup() {
 
                 {error && <p className="text-red-500 text-[10px] bg-red-50 p-1.5 rounded border border-red-100 text-center">{error}</p>}
 
-                <Button type="submit" className="w-full bg-green-950 hover:bg-green-900 text-white font-bold h-10 rounded-xl text-xs mt-1 shadow-md" disabled={loading}>
-                    {loading ? "Creating..." : "Create Admin Account"}
+                <Button type="submit" loading={loading} className="w-full bg-green-950 hover:bg-green-900 text-white font-bold h-10 rounded-xl text-xs mt-1 shadow-md">
+                    Create Admin Account
                 </Button>
 
 

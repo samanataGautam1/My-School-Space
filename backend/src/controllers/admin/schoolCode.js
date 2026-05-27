@@ -1,10 +1,9 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require("../../../prisma/prisma");
 const { sendSchoolCodeEmail, sendAdminNotification } = require('../../services/mailer');
 const { authMiddleware, allowRoles } = require('../../middleware/auth');
 const { validateEmail } = require('../../utils/validators');
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 /* ================= REQUEST SCHOOL CODE RECOVERY ================= */
