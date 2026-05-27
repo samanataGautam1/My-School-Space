@@ -1,27 +1,30 @@
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 const dns = require("dns");
+const sgMail = require("@sendgrid/mail");
 
 // 🌐 Force Node.js to prefer IPv4 over IPv6. 
-// This fixes the 'ENETUNREACH' error on networks with broken IPv6 routing.
 if (dns.setDefaultResultOrder) {
     dns.setDefaultResultOrder('ipv4first');
 }
 
+// 📧 Initialize SendGrid as the GLOBAL primary provider
+if (process.env.SENDGRID_API_KEY) {
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
+
 /**
  * Sends an email using:
- * 1. Resend (if RESEND_API_KEY is present)
- * 2. SendGrid (if SENDGRID_API_KEY is present)
- * 3. Nodemailer SMTP (Fallback or school-specific)
+ * 1. SendGrid API (PRIORITY FOR ALL PRODUCTION EMAILS)
+ * 2. Resend API
+ * 3. Nodemailer SMTP (Fallback)
  */
 async function sendEmail({ to, subject, html, smtpUser, smtpPass }) {
     console.log(`📧 Attempting to send email to ${to}...`);
 
-    // --- 1. TRY SENDGRID (If configured) ---
-    if (!smtpUser && process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL) {
+    // --- 1. TRY SENDGRID (PRIMARY FOR ALL) ---
+    if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL) {
         try {
-            const sgMail = require("@sendgrid/mail");
-            sgMail.setApiKey(process.env.SENDGRID_API_KEY);
             console.log("📤 Trying SendGrid...");
             await sgMail.send({
                 from: {
@@ -33,14 +36,14 @@ async function sendEmail({ to, subject, html, smtpUser, smtpPass }) {
                 html,
             });
             console.log("✅ Email sent via SendGrid.");
-            return { success: true };
+            return { success: true, provider: 'sendgrid' };
         } catch (sgErr) {
             console.error("❌ SendGrid error:", sgErr.message);
         }
     }
 
-    // --- 2. TRY RESEND (If configured) ---
-    if (!smtpUser && process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 're_123456789') {
+    // --- 2. TRY RESEND (Fallback 1) ---
+    if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 're_123456789') {
         try {
             const { Resend } = require('resend');
             const resend = new Resend(process.env.RESEND_API_KEY);
@@ -57,13 +60,13 @@ async function sendEmail({ to, subject, html, smtpUser, smtpPass }) {
         }
     }
 
-    // --- 3. TRY NODEMAILER SMTP (Primary or Fallback) ---
+    // --- 3. TRY NODEMAILER SMTP (ULTIMATE FALLBACK) ---
     const user = smtpUser || process.env.EMAIL_USER;
     const pass = smtpPass || process.env.EMAIL_PASS;
 
     if (!user || !pass) {
-        console.error("❌ No email credentials available.");
-        throw new Error("Email delivery configuration missing. Please check your .env file.");
+        console.error("❌ No email credentials available (SendGrid failed and no SMTP set).");
+        throw new Error("Email delivery failed: please check your SendGrid or SMTP configuration.");
     }
 
     try {
@@ -72,7 +75,7 @@ async function sendEmail({ to, subject, html, smtpUser, smtpPass }) {
             host: "smtp.gmail.com",
             port: 587,
             secure: false,
-            family: 4, // 🔌 Force IPv4 to avoid ENETUNREACH IPv6 errors
+            family: 4, // Force IPv4
             auth: { user, pass },
         });
 
