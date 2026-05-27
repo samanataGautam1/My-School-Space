@@ -72,7 +72,7 @@ export function AuthProvider({ children }) {
                             console.error("Failed to parse cross-tab user data", err);
                         }
                     }
-                    
+
                     if (e.key === "selectedStudent") {
                         const savedStudent = localStorage.getItem("selectedStudent");
                         try {
@@ -166,21 +166,29 @@ export function AuthProvider({ children }) {
         return { success: false, message: result.message };
     };
 
+    const verifyEmail = async (email, code) => {
+        return authService.verifyEmail(email, code);
+    };
+
+    const resendCode = async (email) => {
+        return authService.resendCode(email);
+    };
+
     const refreshUser = async () => {
-    try {
-        const data = await authService.checkAuth();
+        try {
+            const data = await authService.checkAuth();
 
-        if (data.ok && data.user) {
-            setCurrentUser(data.user);
-            localStorage.setItem("user", JSON.stringify(data.user));
-            return data.user;
+            if (data.ok && data.user) {
+                setCurrentUser(data.user);
+                localStorage.setItem("user", JSON.stringify(data.user));
+                return data.user;
+            }
+
+            return null;
+        } catch (err) {
+            return null;
         }
-
-        return null;
-    } catch (err) {
-        return null;
-    }
-};
+    };
 
     const value = {
         currentUser,
@@ -197,7 +205,9 @@ export function AuthProvider({ children }) {
         registerTeacher,
         registerStudent,
         registerParent,
-    
+        verifyEmail,
+        resendCode,
+
         getDashboardOverview: dashboardService.getOverview,
         getDashboardTeachers: dashboardService.getTeachers,
         getDashboardMessages: dashboardService.getMessages,

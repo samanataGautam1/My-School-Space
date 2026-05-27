@@ -200,6 +200,36 @@ export const authService = {
     logout: () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+    },
+
+    verifyEmail: async (email, code) => {
+        try {
+            const response = await api.post('/api/verify/email', { email, code });
+            return {
+                success: true,
+                message: response.data.message
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: error.response?.data?.error || 'Verification failed'
+            };
+        }
+    },
+
+    resendCode: async (email) => {
+        try {
+            const response = await api.post('/api/verify/resend-code', { email });
+            return {
+                success: true,
+                message: response.data.message
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: error.response?.data?.error || 'Failed to resend code'
+            };
+        }
     }
 };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthContext";
+import { authService } from "../services/api";
 import { Button, Input, Card } from "../components/ui/Shared";
 import { CheckCircle, AlertCircle, Mail, RotateCw } from "lucide-react";
 
@@ -46,29 +47,15 @@ export default function VerifyEmail() {
         setLoading(true);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/verify/email`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, code }),
-            });
+            const result = await authService.verifyEmail(email, code);
 
-            const data = await response.json();
-
-            if (response.ok) {
-                setSuccess(data.message);
-
-                if (response.ok) {
-    setSuccess(data.message);
-
-    setTimeout(() => {
-        navigate("/login");
-    }, 1500);
-} else {
-    setError(data.error || "Verification failed");
-    setLoading(false);
-}
+            if (result.success) {
+                setSuccess(result.message);
+                setTimeout(() => {
+                    navigate("/login");
+                }, 1500);
             } else {
-                setError(data.error || "Verification failed");
+                setError(result.message || "Verification failed");
                 setLoading(false);
             }
         } catch (err) {
@@ -84,17 +71,12 @@ export default function VerifyEmail() {
         setSuccess("");
 
         try {
-            const response = await fetch("/api/verify/resend-code", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email }),
-            });
-            const data = await response.json();
-            if (response.ok) {
-                setSuccess(data.message);
+            const result = await authService.resendCode(email);
+            if (result.success) {
+                setSuccess(result.message);
                 setCooldown(60);
             } else {
-                setError(data.error || "Failed to resend code.");
+                setError(result.message || "Failed to resend code.");
             }
         } catch (err) {
             setError("Failed to connect to server.");
