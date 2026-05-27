@@ -49,7 +49,7 @@ export default function AdminDashboard() {
     const [classes, setClasses] = useState([]);
     const [examSubmissions, setExamSubmissions] = useState({
         submissions: [],
-        published: [] 
+        published: []
     });
 
 
@@ -251,7 +251,7 @@ export default function AdminDashboard() {
                     });
                 }
             } catch (e) {
-                
+
             }
         }, 5000);
 
@@ -684,7 +684,7 @@ export default function AdminDashboard() {
                                             <p className="text-[10px] text-slate-500 font-inter">{teacher.email}</p>
                                         </div>
                                     </div>
-                                  
+
                                 </div>
 
                                 <div className="space-y-2 mb-4">
@@ -830,7 +830,7 @@ export default function AdminDashboard() {
                     <div className="flex-1 flex flex-col items-center justify-center relative">
                         {stats.studentDistribution && stats.studentDistribution.length > 0 ? (
                             (() => {
-                                const PIE_COLORS = ['#6366f1','#10b981','#f59e0b','#ef4444','#3b82f6','#a855f7','#14b8a6','#f97316','#ec4899','#84cc16'];
+                                const PIE_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#a855f7', '#14b8a6', '#f97316', '#ec4899', '#84cc16'];
                                 return (
                                     <>
                                         <DistributionChart
@@ -1170,7 +1170,7 @@ export default function AdminDashboard() {
                 {/* Brand */}
                 <div className="px-5 py-5 border-b border-white/8">
                     <div className="flex items-center gap-3">
-                     
+
                         <div>
                             <span className="text-[13px] font-bold tracking-widest text-white uppercase">MYSchoolSpace</span>
                             <p className="text-[8px] text-white/30 uppercase tracking-widest font-medium mt-0.5">Admin Console</p>
@@ -1181,16 +1181,16 @@ export default function AdminDashboard() {
                 <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
                     {/* Core */}
                     <p className="text-[8px] font-bold text-white/25 uppercase tracking-widest px-3 pb-1.5 pt-1">Core</p>
-                    <SidebarItem  label="Dashboard" active={activeTab === "overview"} onClick={() => setActiveTab("overview")} />
-                    <SidebarItem  label="Class Management" active={activeTab === "classes"} onClick={() => setActiveTab("classes")} />
-                    <SidebarItem  label="Staff & Faculty" active={activeTab === "teachers"} onClick={() => setActiveTab("teachers")} badge={pendingTeachers.length > 0 ? pendingTeachers.length : null} />
-                    <SidebarItem  label="Student Records" active={activeTab === "students"} onClick={() => setActiveTab("students")} />
+                    <SidebarItem label="Dashboard" active={activeTab === "overview"} onClick={() => setActiveTab("overview")} />
+                    <SidebarItem label="Class Management" active={activeTab === "classes"} onClick={() => setActiveTab("classes")} />
+                    <SidebarItem label="Staff & Faculty" active={activeTab === "teachers"} onClick={() => setActiveTab("teachers")} badge={pendingTeachers.length > 0 ? pendingTeachers.length : null} />
+                    <SidebarItem label="Student Records" active={activeTab === "students"} onClick={() => setActiveTab("students")} />
 
                     {/* Insights */}
                     <p className="text-[8px] font-bold text-white/25 uppercase tracking-widest px-3 pb-1.5 pt-3">Insights</p>
-                    <SidebarItem  label="Teacher Performance" active={activeTab === "reviews"} onClick={() => setActiveTab("reviews")} />
+                    <SidebarItem label="Teacher Performance" active={activeTab === "reviews"} onClick={() => setActiveTab("reviews")} />
                     <SidebarItem
-                        
+
                         label="Examinations & Result"
                         active={activeTab === "exam-results"}
                         onClick={() => {
@@ -1207,7 +1207,7 @@ export default function AdminDashboard() {
                     />
 
                     <SidebarItem
-                        
+
                         label="Class Promotion"
                         active={activeTab === "promotions"}
                         onClick={() => setActiveTab("promotions")}
@@ -1215,8 +1215,8 @@ export default function AdminDashboard() {
 
                     {/* System */}
                     <p className="text-[8px] font-bold text-white/25 uppercase tracking-widest px-3 pb-1.5 pt-3">System</p>
-                    <SidebarItem  label="Session Management" active={activeTab === "sessions"} onClick={() => setActiveTab("sessions")} />
-                    <SidebarItem  label="Configuration" active={activeTab === "settings"} onClick={() => setActiveTab("settings")} />
+                    <SidebarItem label="Session Management" active={activeTab === "sessions"} onClick={() => setActiveTab("sessions")} />
+                    <SidebarItem label="Configuration" active={activeTab === "settings"} onClick={() => setActiveTab("settings")} />
                 </nav>
 
                 <div className="px-3 pb-4 border-t border-white/8 pt-3">
@@ -1224,7 +1224,7 @@ export default function AdminDashboard() {
                         onClick={handleLogout}
                         className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-white/40 hover:text-white/80 hover:bg-white/5 transition-all text-[11px] font-medium group mb-3"
                     >
-                        
+
                         <span>Sign Out</span>
                     </button>
 
@@ -1430,8 +1430,8 @@ export default function AdminDashboard() {
                                                     detail: c.published.done
                                                         ? `${checklist.terminal} results are official and grade sheets sent`
                                                         : c.marks.done
-                                                        ? 'Ready to publish — go to Exam Results → Publish Result'
-                                                        : 'Waiting for all exam marks to be submitted first',
+                                                            ? 'Ready to publish — go to Exam Results → Publish Result'
+                                                            : 'Waiting for all exam marks to be submitted first',
                                                     step: 2,
                                                 },
                                                 {
@@ -1441,27 +1441,28 @@ export default function AdminDashboard() {
                                                     detail: c.calculated.done
                                                         ? 'Performance and potential scores have been computed for all students'
                                                         : c.published.done
-                                                        ? 'Ready to calculate — go to Exam Results → Run Calculation'
-                                                        : 'Publish results first, then run calculation',
+                                                            ? 'Ready to calculate — go to Exam Results → Run Calculation'
+                                                            : 'Publish results first, then run calculation',
                                                     step: 3,
                                                 },
-                                                {
+                                                // Teacher Review only required for sessions 1–3
+                                                ...(!checklist.is4thSession ? [{
                                                     key: 'reviewed',
                                                     done: c.reviewed.done,
                                                     label: 'Teacher Review',
                                                     detail: c.reviewed.total === 0
                                                         ? (c.calculated.done ? 'No student scores found — check calculation' : 'Run calculation first — this creates scores for teachers to review')
                                                         : c.reviewed.done
-                                                        ? `All ${c.reviewed.total} student scores confirmed by class teachers`
-                                                        : `${c.reviewed.completed} of ${c.reviewed.total} confirmed — ${c.reviewed.pending} waiting for class teacher review`,
+                                                            ? `All ${c.reviewed.total} student scores confirmed by class teachers`
+                                                            : `${c.reviewed.completed} of ${c.reviewed.total} confirmed — ${c.reviewed.pending} waiting for class teacher review`,
                                                     step: 4,
-                                                },
+                                                }] : []),
                                             ];
                                             return (
                                                 <div className="space-y-2">
                                                     {items.map(item => (
                                                         <div key={item.key} className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all ${item.done ? 'bg-white border-green-950' : 'bg-white border-green-950'}`}>
-                                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${item.done ? 'bg-green-950 text-white broder-green-950'  : 'bg-white text-green-950 broder-green-950'}`}>
+                                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${item.done ? 'bg-green-950 text-white broder-green-950' : 'bg-white text-green-950 broder-green-950'}`}>
                                                                 {item.done ? '✓' : item.step}
                                                             </div>
                                                             <div className="flex-1 min-w-0">
@@ -1478,11 +1479,10 @@ export default function AdminDashboard() {
                                         <button
                                             disabled={!checklist?.allPassed}
                                             onClick={() => { setEndSessionConfirmation(''); setShowEndSessionModal(true); }}
-                                            className={`w-full py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
-                                                checklist?.allPassed
+                                            className={`w-full py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${checklist?.allPassed
                                                     ? 'bg-red-950 hover:bg-red-900 text-white active:scale-[0.99] shadow-sm'
                                                     : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                                            }`}
+                                                }`}
                                         >
                                             <Lock size={13} />
                                             {!checklist ? 'Run checklist first' : checklist.allPassed ? 'End Session' : 'Complete all checks to end session'}
@@ -1502,7 +1502,7 @@ export default function AdminDashboard() {
                                             className="w-full flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all group text-left"
                                         >
                                             <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0 group-hover:bg-emerald-200 transition-colors">
-                                                
+
                                             </div>
                                             <div className="flex-1">
                                                 <p className="text-[12px] font-semibold text-slate-800">Start New Session</p>
@@ -1581,13 +1581,12 @@ export default function AdminDashboard() {
                                         <div className="space-y-2">
                                             {sessionHistory.map((h, i) => (
                                                 <div key={i} className="flex items-center gap-4 px-5 py-3.5 bg-white rounded-xl border border-slate-200 hover:border-slate-300 transition-colors">
-                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-[10px] font-bold ${
-                                                        h.examPublished && h.calculationDone
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-[10px] font-bold ${h.examPublished && h.calculationDone
                                                             ? 'bg-green-950 text-white'
                                                             : h.examPublished
-                                                            ? 'bg-green-950 text-white'
-                                                            : 'bg-green-950 text-white'
-                                                    }`}>
+                                                                ? 'bg-green-950 text-white'
+                                                                : 'bg-green-950 text-white'
+                                                        }`}>
                                                         {h.session.charAt(0)}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
@@ -1633,11 +1632,10 @@ export default function AdminDashboard() {
                                                         <button
                                                             key={s}
                                                             onClick={() => setStartSessionForm(f => ({ ...f, session: s }))}
-                                                            className={`py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border ${
-                                                                startSessionForm.session === s
+                                                            className={`py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border ${startSessionForm.session === s
                                                                     ? 'bg-[#052e16] text-white border-[#052e16] shadow-sm'
                                                                     : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
-                                                            }`}
+                                                                }`}
                                                         >
                                                             {s.split(' ')[0]}
                                                         </button>
@@ -1661,7 +1659,7 @@ export default function AdminDashboard() {
                                                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2">Preview</p>
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center">
-                                                        
+
                                                     </div>
                                                     <div>
                                                         <p className="text-[13px] font-bold text-slate-900">{startSessionForm.session}</p>
@@ -1844,15 +1842,13 @@ export default function AdminDashboard() {
                                     <button
                                         key={page}
                                         onClick={() => setResultsPage(page)}
-                                        className={`flex-1 py-2 px-3 rounded-lg text-[11px] font-semibold transition-all ${
-                                            resultsPage === page
+                                        className={`flex-1 py-2 px-3 rounded-lg text-[11px] font-semibold transition-all ${resultsPage === page
                                                 ? 'bg-green-950 text-white shadow-sm'
                                                 : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
-                                        }`}
+                                            }`}
                                     >
-                                        <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold mr-1.5 ${
-                                            resultsPage === page ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
-                                        }`}>{page}</span>
+                                        <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold mr-1.5 ${resultsPage === page ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                                            }`}>{page}</span>
                                         {label}
                                     </button>
                                 ))}
@@ -2107,15 +2103,13 @@ export default function AdminDashboard() {
                                     <button
                                         key={page}
                                         onClick={() => setPromotionPage(page)}
-                                        className={`flex-1 py-2 px-3 rounded-lg text-[11px] font-semibold transition-all ${
-                                            promotionPage === page
+                                        className={`flex-1 py-2 px-3 rounded-lg text-[11px] font-semibold transition-all ${promotionPage === page
                                                 ? 'bg-green-950 text-white shadow-sm'
                                                 : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
-                                        }`}
+                                            }`}
                                     >
-                                        <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold mr-1.5 ${
-                                            promotionPage === page ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
-                                        }`}>{page}</span>
+                                        <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold mr-1.5 ${promotionPage === page ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                                            }`}>{page}</span>
                                         {label}
                                     </button>
                                 ))}
@@ -2123,421 +2117,421 @@ export default function AdminDashboard() {
 
                             {/* ═══ PAGE 1: CLASS 10 — GRADUATION ═══ */}
                             {promotionPage === 1 && (
-                            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                                <div className="px-5 py-4 bg-green-950 border-b border-green-950 flex items-center justify-between">
-                                    <div>
-                                        <p className="text-[13px] font-semibold text-white">Class 10 — Graduation</p>
-                                        <p className="text-[10px] text-white mt-0.5">Final class — graduate students independently without waiting for session end</p>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex items-center gap-2">
-                                            <div className="h-1.5 w-24 bg-green-950 rounded-full overflow-hidden">
-                                                <div className="h-full bg-green-950 rounded-full transition-all duration-500" style={{ width: `${class10Data.length > 0 ? (class10Data.filter(s => s.promotionStatus === 'GRADUATED').length / class10Data.length * 100) : 0}%` }} />
+                                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                                    <div className="px-5 py-4 bg-green-950 border-b border-green-950 flex items-center justify-between">
+                                        <div>
+                                            <p className="text-[13px] font-semibold text-white">Class 10 — Graduation</p>
+                                            <p className="text-[10px] text-white mt-0.5">Final class — graduate students independently without waiting for session end</p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-1.5 w-24 bg-green-950 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-green-950 rounded-full transition-all duration-500" style={{ width: `${class10Data.length > 0 ? (class10Data.filter(s => s.promotionStatus === 'GRADUATED').length / class10Data.length * 100) : 0}%` }} />
+                                                </div>
+                                                <span className="text-[10px] font-bold text-green-950">
+                                                    {class10Data.filter(s => s.promotionStatus === 'GRADUATED').length}/{class10Data.length}
+                                                </span>
                                             </div>
-                                            <span className="text-[10px] font-bold text-green-950">
-                                                {class10Data.filter(s => s.promotionStatus === 'GRADUATED').length}/{class10Data.length}
-                                            </span>
                                         </div>
                                     </div>
-                                </div>
 
-                                {class10Data.length === 0 ? (
-                                    <div className="p-10 text-center text-slate-400 text-[11px]">No Class 10 students found</div>
-                                ) : (
-                                    <div className="overflow-x-auto" data-testid="class10-promotion-table">
-                                        <table className="w-full text-[11px]">
-                                            <thead>
-                                                <tr className="bg-slate-50 border-b border-slate-200">
-                                                    <th className="text-left px-4 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Student</th>
-                                                    <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Class</th>
-                                                    <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Result</th>
-                                                    <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">%</th>
-                                                    <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Status</th>
-                                                    <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {class10Data.slice((class10RowPage - 1) * ROWS_PER_PAGE, class10RowPage * ROWS_PER_PAGE).map(s => (
-                                                    <tr key={s.id} className={`border-b border-slate-100 transition-colors ${s.promotionStatus === 'GRADUATED' ? 'bg-indigo-50/30' : 'hover:bg-slate-50/50'}`}>
-                                                        <td className="px-4 py-3">
-                                                            <p className="font-medium text-slate-800">{s.firstName} {s.lastName}</p>
-                                                            <p className="text-[9px] text-slate-400 mt-0.5">{s.studentCode}</p>
-                                                        </td>
-                                                        <td className="text-center px-3 py-3">
-                                                            <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-medium">{s.currentClass?.name}{s.currentClass?.section}</span>
-                                                        </td>
-                                                        <td className="text-center px-3 py-3">
-                                                            {s.resultStatus ? (
-                                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${s.resultStatus === 'PASS' ? 'bg-emerald-50 text-green-950' : 'bg-red-50 text-red-500'}`}>{s.resultStatus}</span>
-                                                            ) : <span className="text-slate-300 text-[10px]">No results</span>}
-                                                        </td>
-                                                        <td className="text-center px-3 py-3">
-                                                            {s.percentage !== null ? <span className={`font-semibold ${s.percentage >= 50 ? 'text-green-950' : 'text-red-500'}`}>{s.percentage}%</span> : '—'}
-                                                        </td>
-                                                        <td className="text-center px-3 py-3"><PromotionBadge status={s.promotionStatus} /></td>
-                                                        <td className="text-center px-3 py-3">
-                                                            {s.promotionStatus === 'GRADUATED' ? (
-                                                                <span className="inline-flex items-center gap-1 text-[10px] text-green-950 font-medium"><GraduationCap size={12} /> Graduated</span>
-                                                            ) : (s.promotionStatus === 'NONE' || s.promotionStatus === 'PENDING') ? (
-                                                                <div className="flex items-center justify-center">
-                                                                    {s.isGraduationEligible ? (
-                                                                        <button
-                                                                            onClick={() => setPromotionConfirm({ studentId: s.id, action: 'graduate', name: `${s.firstName} ${s.lastName}`, currentClass: `${s.currentClass?.name}${s.currentClass?.section}`, percentage: s.percentage, resultStatus: s.resultStatus, studentCode: s.studentCode })}
-                                                                            className="px-3 py-1.5 bg-green-950 text-white hover:bg-green-700 rounded-lg text-[10px] font-medium transition-all shadow-sm"
-                                                                        >
-                                                                            Graduate
-                                                                        </button>
-                                                                    ) : (
-                                                                        <span className="text-[10px] text-slate-400">Not eligible</span>
-                                                                    )}
-                                                                </div>
-                                                            ) : <span className="text-[10px] text-slate-300">—</span>}
-                                                        </td>
+                                    {class10Data.length === 0 ? (
+                                        <div className="p-10 text-center text-slate-400 text-[11px]">No Class 10 students found</div>
+                                    ) : (
+                                        <div className="overflow-x-auto" data-testid="class10-promotion-table">
+                                            <table className="w-full text-[11px]">
+                                                <thead>
+                                                    <tr className="bg-slate-50 border-b border-slate-200">
+                                                        <th className="text-left px-4 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Student</th>
+                                                        <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Class</th>
+                                                        <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Result</th>
+                                                        <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">%</th>
+                                                        <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Status</th>
+                                                        <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Action</th>
                                                     </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
-                                {/* Row Pagination — Class 10 */}
-                                {class10Data.length > ROWS_PER_PAGE && (
-                                    <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
-                                        <span className="text-[10px] text-slate-400">
-                                            Showing {(class10RowPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(class10RowPage * ROWS_PER_PAGE, class10Data.length)} of {class10Data.length}
-                                        </span>
-                                        <div className="flex items-center gap-1">
-                                            <button
-                                                onClick={() => setClass10RowPage(p => Math.max(1, p - 1))}
-                                                disabled={class10RowPage === 1}
-                                                className="px-2.5 py-1 rounded-lg text-[10px] font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                                            >← Prev</button>
-                                            {Array.from({ length: Math.ceil(class10Data.length / ROWS_PER_PAGE) }, (_, i) => i + 1).map(p => (
-                                                <button key={p} onClick={() => setClass10RowPage(p)}
-                                                    className={`w-7 h-7 rounded-lg text-[10px] font-semibold transition-all ${class10RowPage === p ? 'bg-green-950 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
-                                                    {p}
-                                                </button>
-                                            ))}
-                                            <button
-                                                onClick={() => setClass10RowPage(p => Math.min(Math.ceil(class10Data.length / ROWS_PER_PAGE), p + 1))}
-                                                disabled={class10RowPage === Math.ceil(class10Data.length / ROWS_PER_PAGE)}
-                                                className="px-2.5 py-1 rounded-lg text-[10px] font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                                            >Next →</button>
+                                                </thead>
+                                                <tbody>
+                                                    {class10Data.slice((class10RowPage - 1) * ROWS_PER_PAGE, class10RowPage * ROWS_PER_PAGE).map(s => (
+                                                        <tr key={s.id} className={`border-b border-slate-100 transition-colors ${s.promotionStatus === 'GRADUATED' ? 'bg-indigo-50/30' : 'hover:bg-slate-50/50'}`}>
+                                                            <td className="px-4 py-3">
+                                                                <p className="font-medium text-slate-800">{s.firstName} {s.lastName}</p>
+                                                                <p className="text-[9px] text-slate-400 mt-0.5">{s.studentCode}</p>
+                                                            </td>
+                                                            <td className="text-center px-3 py-3">
+                                                                <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-medium">{s.currentClass?.name}{s.currentClass?.section}</span>
+                                                            </td>
+                                                            <td className="text-center px-3 py-3">
+                                                                {s.resultStatus ? (
+                                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${s.resultStatus === 'PASS' ? 'bg-emerald-50 text-green-950' : 'bg-red-50 text-red-500'}`}>{s.resultStatus}</span>
+                                                                ) : <span className="text-slate-300 text-[10px]">No results</span>}
+                                                            </td>
+                                                            <td className="text-center px-3 py-3">
+                                                                {s.percentage !== null ? <span className={`font-semibold ${s.percentage >= 50 ? 'text-green-950' : 'text-red-500'}`}>{s.percentage}%</span> : '—'}
+                                                            </td>
+                                                            <td className="text-center px-3 py-3"><PromotionBadge status={s.promotionStatus} /></td>
+                                                            <td className="text-center px-3 py-3">
+                                                                {s.promotionStatus === 'GRADUATED' ? (
+                                                                    <span className="inline-flex items-center gap-1 text-[10px] text-green-950 font-medium"><GraduationCap size={12} /> Graduated</span>
+                                                                ) : (s.promotionStatus === 'NONE' || s.promotionStatus === 'PENDING') ? (
+                                                                    <div className="flex items-center justify-center">
+                                                                        {s.isGraduationEligible ? (
+                                                                            <button
+                                                                                onClick={() => setPromotionConfirm({ studentId: s.id, action: 'graduate', name: `${s.firstName} ${s.lastName}`, currentClass: `${s.currentClass?.name}${s.currentClass?.section}`, percentage: s.percentage, resultStatus: s.resultStatus, studentCode: s.studentCode })}
+                                                                                className="px-3 py-1.5 bg-green-950 text-white hover:bg-green-700 rounded-lg text-[10px] font-medium transition-all shadow-sm"
+                                                                            >
+                                                                                Graduate
+                                                                            </button>
+                                                                        ) : (
+                                                                            <span className="text-[10px] text-slate-400">Not eligible</span>
+                                                                        )}
+                                                                    </div>
+                                                                ) : <span className="text-[10px] text-slate-300">—</span>}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
                                         </div>
-                                    </div>
-                                )}
-                            </div>
+                                    )}
+                                    {/* Row Pagination — Class 10 */}
+                                    {class10Data.length > ROWS_PER_PAGE && (
+                                        <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+                                            <span className="text-[10px] text-slate-400">
+                                                Showing {(class10RowPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(class10RowPage * ROWS_PER_PAGE, class10Data.length)} of {class10Data.length}
+                                            </span>
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    onClick={() => setClass10RowPage(p => Math.max(1, p - 1))}
+                                                    disabled={class10RowPage === 1}
+                                                    className="px-2.5 py-1 rounded-lg text-[10px] font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                                                >← Prev</button>
+                                                {Array.from({ length: Math.ceil(class10Data.length / ROWS_PER_PAGE) }, (_, i) => i + 1).map(p => (
+                                                    <button key={p} onClick={() => setClass10RowPage(p)}
+                                                        className={`w-7 h-7 rounded-lg text-[10px] font-semibold transition-all ${class10RowPage === p ? 'bg-green-950 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
+                                                        {p}
+                                                    </button>
+                                                ))}
+                                                <button
+                                                    onClick={() => setClass10RowPage(p => Math.min(Math.ceil(class10Data.length / ROWS_PER_PAGE), p + 1))}
+                                                    disabled={class10RowPage === Math.ceil(class10Data.length / ROWS_PER_PAGE)}
+                                                    className="px-2.5 py-1 rounded-lg text-[10px] font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                                                >Next →</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             )}
 
                             {/* ═══ PAGE 2: GRADUATED BATCHES ═══ */}
                             {promotionPage === 2 && (
-                            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden" data-testid="graduated-batches-section">
-                                <div className="px-5 py-4 bg-green-950 from-white to-emerald-50/60 border-b border-indigo-100 flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        
-                                        <div>
-                                            <p className="text-[13px] font-semibold text-white">Graduated Batches</p>
-                                            <p className="text-[10px] text-white mt-0.5">All graduated students grouped by graduation year</p>
+                                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden" data-testid="graduated-batches-section">
+                                    <div className="px-5 py-4 bg-green-950 from-white to-emerald-50/60 border-b border-indigo-100 flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+
+                                            <div>
+                                                <p className="text-[13px] font-semibold text-white">Graduated Batches</p>
+                                                <p className="text-[10px] text-white mt-0.5">All graduated students grouped by graduation year</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <span className="text-[10px] font-bold text-green-950 bg-white border border-green-950 px-2.5 py-1 rounded-lg">
-                                        {graduatedBatches.length} {graduatedBatches.length === 1 ? 'batch' : 'batches'}
-                                    </span>
-                                </div>
-
-                                {graduatedBatchesLoading ? (
-                                    <div className="p-10 text-center text-slate-400 text-[11px]">Loading batches…</div>
-                                ) : graduatedBatches.length === 0 ? (
-                                    <div className="p-10 text-center text-slate-400 text-[11px]">No graduated students yet. Graduating Class 10 students creates a batch for the current academic year.</div>
-                                ) : (
-                                    <div className="divide-y divide-slate-100">
-                                        {graduatedBatches.slice((batchRowPage - 1) * ROWS_PER_PAGE, batchRowPage * ROWS_PER_PAGE).map(batch => {
-                                            const isOpen = !!expandedBatchYears[batch.year];
-                                            return (
-                                                <div key={batch.year} data-testid={`graduated-batch-${batch.year}`}>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setExpandedBatchYears(prev => ({ ...prev, [batch.year]: !prev[batch.year] }))}
-                                                        className="w-full flex items-center justify-between px-5 py-3 hover:bg-green-100/30 transition-colors text-left"
-                                                    >
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-lg bg-white text-green-700 flex items-center justify-center">
-                                                                
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-[12px] font-semibold text-slate-800">{batch.label}</p>
-                                                                <p className="text-[10px] text-slate-500">{batch.count} {batch.count === 1 ? 'graduate' : 'graduates'}</p>
-                                                            </div>
-                                                        </div>
-                                                        <span className="text-[10px] font-medium text-green-950">{isOpen ? 'Hide' : 'View'}</span>
-                                                    </button>
-
-                                                    {isOpen && (
-                                                        <div className="overflow-x-auto bg-slate-50/30">
-                                                            <table className="w-full text-[11px]">
-                                                                <thead>
-                                                                    <tr className="border-b border-slate-200">
-                                                                        <th className="text-left px-5 py-2 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Student</th>
-                                                                        <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Code</th>
-                                                                        <th className="text-center px-3 py-2 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Class</th>
-                                                                        <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Email</th>
-                                                                        <th className="text-center px-3 py-2 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Graduated</th>
-                                                                        <th className="text-center px-3 py-2 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Acknowledged</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    {batch.students.map(s => (
-                                                                        <tr key={s.id} className="border-b border-slate-100 hover:bg-white transition-colors">
-                                                                            <td className="px-5 py-2.5 font-medium text-slate-800">{s.name}</td>
-                                                                            <td className="px-3 py-2.5 text-slate-500 font-mono text-[10px]">{s.studentCode}</td>
-                                                                            <td className="text-center px-3 py-2.5">
-                                                                                <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-medium">{s.lastClass}</span>
-                                                                            </td>
-                                                                            <td className="px-3 py-2.5 text-slate-500 text-[10px]">{s.email || '—'}</td>
-                                                                            <td className="text-center px-3 py-2.5 text-slate-600 text-[10px]">
-                                                                                {s.graduatedAt ? new Date(s.graduatedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}
-                                                                            </td>
-                                                                            <td className="text-center px-3 py-2.5">
-                                                                                {s.promotionAcknowledgedAt ? (
-                                                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 rounded text-[10px] font-medium">Seen</span>
-                                                                                ) : (
-                                                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px] font-medium">Pending</span>
-                                                                                )}
-                                                                            </td>
-                                                                        </tr>
-                                                                    ))}
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                                {/* Row Pagination — Graduated Batches */}
-                                {graduatedBatches.length > ROWS_PER_PAGE && (
-                                    <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
-                                        <span className="text-[10px] text-slate-400">
-                                            Showing {(batchRowPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(batchRowPage * ROWS_PER_PAGE, graduatedBatches.length)} of {graduatedBatches.length}
+                                        <span className="text-[10px] font-bold text-green-950 bg-white border border-green-950 px-2.5 py-1 rounded-lg">
+                                            {graduatedBatches.length} {graduatedBatches.length === 1 ? 'batch' : 'batches'}
                                         </span>
-                                        <div className="flex items-center gap-1">
-                                            <button
-                                                onClick={() => setBatchRowPage(p => Math.max(1, p - 1))}
-                                                disabled={batchRowPage === 1}
-                                                className="px-2.5 py-1 rounded-lg text-[10px] font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                                            >← Prev</button>
-                                            {Array.from({ length: Math.ceil(graduatedBatches.length / ROWS_PER_PAGE) }, (_, i) => i + 1).map(p => (
-                                                <button key={p} onClick={() => setBatchRowPage(p)}
-                                                    className={`w-7 h-7 rounded-lg text-[10px] font-semibold transition-all ${batchRowPage === p ? 'bg-green-950 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
-                                                    {p}
-                                                </button>
-                                            ))}
-                                            <button
-                                                onClick={() => setBatchRowPage(p => Math.min(Math.ceil(graduatedBatches.length / ROWS_PER_PAGE), p + 1))}
-                                                disabled={batchRowPage === Math.ceil(graduatedBatches.length / ROWS_PER_PAGE)}
-                                                className="px-2.5 py-1 rounded-lg text-[10px] font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                                            >Next →</button>
-                                        </div>
                                     </div>
-                                )}
-                            </div>
+
+                                    {graduatedBatchesLoading ? (
+                                        <div className="p-10 text-center text-slate-400 text-[11px]">Loading batches…</div>
+                                    ) : graduatedBatches.length === 0 ? (
+                                        <div className="p-10 text-center text-slate-400 text-[11px]">No graduated students yet. Graduating Class 10 students creates a batch for the current academic year.</div>
+                                    ) : (
+                                        <div className="divide-y divide-slate-100">
+                                            {graduatedBatches.slice((batchRowPage - 1) * ROWS_PER_PAGE, batchRowPage * ROWS_PER_PAGE).map(batch => {
+                                                const isOpen = !!expandedBatchYears[batch.year];
+                                                return (
+                                                    <div key={batch.year} data-testid={`graduated-batch-${batch.year}`}>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setExpandedBatchYears(prev => ({ ...prev, [batch.year]: !prev[batch.year] }))}
+                                                            className="w-full flex items-center justify-between px-5 py-3 hover:bg-green-100/30 transition-colors text-left"
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-8 h-8 rounded-lg bg-white text-green-700 flex items-center justify-center">
+
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[12px] font-semibold text-slate-800">{batch.label}</p>
+                                                                    <p className="text-[10px] text-slate-500">{batch.count} {batch.count === 1 ? 'graduate' : 'graduates'}</p>
+                                                                </div>
+                                                            </div>
+                                                            <span className="text-[10px] font-medium text-green-950">{isOpen ? 'Hide' : 'View'}</span>
+                                                        </button>
+
+                                                        {isOpen && (
+                                                            <div className="overflow-x-auto bg-slate-50/30">
+                                                                <table className="w-full text-[11px]">
+                                                                    <thead>
+                                                                        <tr className="border-b border-slate-200">
+                                                                            <th className="text-left px-5 py-2 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Student</th>
+                                                                            <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Code</th>
+                                                                            <th className="text-center px-3 py-2 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Class</th>
+                                                                            <th className="text-left px-3 py-2 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Email</th>
+                                                                            <th className="text-center px-3 py-2 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Graduated</th>
+                                                                            <th className="text-center px-3 py-2 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Acknowledged</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {batch.students.map(s => (
+                                                                            <tr key={s.id} className="border-b border-slate-100 hover:bg-white transition-colors">
+                                                                                <td className="px-5 py-2.5 font-medium text-slate-800">{s.name}</td>
+                                                                                <td className="px-3 py-2.5 text-slate-500 font-mono text-[10px]">{s.studentCode}</td>
+                                                                                <td className="text-center px-3 py-2.5">
+                                                                                    <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-medium">{s.lastClass}</span>
+                                                                                </td>
+                                                                                <td className="px-3 py-2.5 text-slate-500 text-[10px]">{s.email || '—'}</td>
+                                                                                <td className="text-center px-3 py-2.5 text-slate-600 text-[10px]">
+                                                                                    {s.graduatedAt ? new Date(s.graduatedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}
+                                                                                </td>
+                                                                                <td className="text-center px-3 py-2.5">
+                                                                                    {s.promotionAcknowledgedAt ? (
+                                                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 rounded text-[10px] font-medium">Seen</span>
+                                                                                    ) : (
+                                                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px] font-medium">Pending</span>
+                                                                                    )}
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                    {/* Row Pagination — Graduated Batches */}
+                                    {graduatedBatches.length > ROWS_PER_PAGE && (
+                                        <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+                                            <span className="text-[10px] text-slate-400">
+                                                Showing {(batchRowPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(batchRowPage * ROWS_PER_PAGE, graduatedBatches.length)} of {graduatedBatches.length}
+                                            </span>
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    onClick={() => setBatchRowPage(p => Math.max(1, p - 1))}
+                                                    disabled={batchRowPage === 1}
+                                                    className="px-2.5 py-1 rounded-lg text-[10px] font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                                                >← Prev</button>
+                                                {Array.from({ length: Math.ceil(graduatedBatches.length / ROWS_PER_PAGE) }, (_, i) => i + 1).map(p => (
+                                                    <button key={p} onClick={() => setBatchRowPage(p)}
+                                                        className={`w-7 h-7 rounded-lg text-[10px] font-semibold transition-all ${batchRowPage === p ? 'bg-green-950 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'}`}>
+                                                        {p}
+                                                    </button>
+                                                ))}
+                                                <button
+                                                    onClick={() => setBatchRowPage(p => Math.min(Math.ceil(graduatedBatches.length / ROWS_PER_PAGE), p + 1))}
+                                                    disabled={batchRowPage === Math.ceil(graduatedBatches.length / ROWS_PER_PAGE)}
+                                                    className="px-2.5 py-1 rounded-lg text-[10px] font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                                                >Next →</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             )}
 
                             {/* ═══ PAGE 3: CLASS 1-9 — PROMOTION ═══ */}
                             {promotionPage === 3 && (
-                            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                                <div className="px-5 py-4 bg-green-950  border-green-950 flex flex-col md:flex-row md:items-center justify-between gap-3">
-                                    <div>
-                                        <p className="text-[13px] font-semibold text-white">Class 1–9 — Promotion</p>
-                                        <p className="text-[10px] text-white mt-0.5">
-                                            {promotionReady
-                                                ? 'Promote or retain students based on 4th Term results'
-                                                : '4th Term results must be published and calculated before promotion actions'}
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        {!promotionReady && (
-                                            <span className="text-[9px] font-bold text-green-950 bg-white px-2.5 py-1 rounded-lg border ">
-                                                {!promotionResultPublished ? 'Waiting for 4th Term publish' : 'Waiting for calculation'}
-                                            </span>
-                                        )}
-                                        {promotionReady && (
-                                            <button
-                                                onClick={() => setPromotionConfirm({ type: 'bulk' })}
-                                                disabled={bulkPromoteLoading || promotionData.filter(s => s.promotionStatus === 'NONE').length === 0}
-                                                className="px-4 py-2 bg-[#052e16] text-white text-[10px] font-semibold rounded-lg hover:bg-[#0a4a25] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
-                                            >
-                                                <ArrowRight size={12} />
-                                                {bulkPromoteLoading ? 'Processing...' : 'Auto-Promote All'}
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Summary */}
-                                <div className="grid grid-cols-5 divide-x divide-slate-100 border-b border-slate-100 bg-slate-50/50">
-                                    {[
-                                        { label: 'Total', value: promotionData.length, color: 'text-slate-800', dot: 'bg-slate-400' },
-                                        { label: 'Promoted', value: promotionData.filter(s => s.promotionStatus === 'PROMOTED').length, color: 'text-green-950', dot: 'bg-emerald-500' },
-                                        { label: 'Retained', value: promotionData.filter(s => s.promotionStatus === 'RETAINED').length, color: 'text-red-950', dot: 'bg-amber-500' },
-                                        { label: 'Pending', value: promotionData.filter(s => s.promotionStatus === 'PENDING').length, color: 'text-yellow-950', dot: 'bg-red-400' },
-                                        { label: 'Remaining', value: promotionData.filter(s => s.promotionStatus === 'NONE').length, color: 'text-slate-400', dot: 'bg-slate-300' },
-                                    ].map((st, i) => (
-                                        <div key={i} className="px-4 py-3 text-center">
-                                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center gap-1">
-                                                <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
-                                                {st.label}
+                                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                                    <div className="px-5 py-4 bg-green-950  border-green-950 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                                        <div>
+                                            <p className="text-[13px] font-semibold text-white">Class 1–9 — Promotion</p>
+                                            <p className="text-[10px] text-white mt-0.5">
+                                                {promotionReady
+                                                    ? 'Promote or retain students based on 4th Term results'
+                                                    : '4th Term results must be published and calculated before promotion actions'}
                                             </p>
-                                            <p className={`text-lg font-semibold ${st.color} mt-0.5`}>{st.value}</p>
                                         </div>
-                                    ))}
-                                </div>
-
-                                {/* Filters */}
-                                <div className="px-4 py-3 border-b border-slate-100 flex flex-wrap items-center gap-3">
-                                    <div className="relative flex-1 min-w-[180px] max-w-xs">
-                                        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
-                                        <input type="text" placeholder="Search student..." value={promotionSearch} onChange={(e) => setPromotionSearch(e.target.value)}
-                                            className="w-full pl-8 pr-3 py-1.5 text-[11px] bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-slate-400 transition-all" />
+                                        <div className="flex items-center gap-2">
+                                            {!promotionReady && (
+                                                <span className="text-[9px] font-bold text-green-950 bg-white px-2.5 py-1 rounded-lg border ">
+                                                    {!promotionResultPublished ? 'Waiting for 4th Term publish' : 'Waiting for calculation'}
+                                                </span>
+                                            )}
+                                            {promotionReady && (
+                                                <button
+                                                    onClick={() => setPromotionConfirm({ type: 'bulk' })}
+                                                    disabled={bulkPromoteLoading || promotionData.filter(s => s.promotionStatus === 'NONE').length === 0}
+                                                    className="px-4 py-2 bg-[#052e16] text-white text-[10px] font-semibold rounded-lg hover:bg-[#0a4a25] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                                                >
+                                                    <ArrowRight size={12} />
+                                                    {bulkPromoteLoading ? 'Processing...' : 'Auto-Promote All'}
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-                                    <select value={promotionClassFilter} onChange={(e) => setPromotionClassFilter(e.target.value)}
-                                        className="appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-[11px] py-1.5 pl-3 pr-8 rounded-lg outline-none focus:border-slate-400 cursor-pointer">
-                                        <option value="">All Classes</option>
-                                        {promotionClasses.map(c => <option key={c.id} value={c.id}>{c.name}{c.section}</option>)}
-                                    </select>
-                                    <select value={promotionStatusFilter} onChange={(e) => setPromotionStatusFilter(e.target.value)}
-                                        className="appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-[11px] py-1.5 pl-3 pr-8 rounded-lg outline-none focus:border-slate-400 cursor-pointer">
-                                        <option value="ALL">All Status</option>
-                                        <option value="PROMOTED">Promoted</option>
-                                        <option value="RETAINED">Retained</option>
-                                        <option value="PENDING">Pending</option>
-                                        <option value="NONE">Not Processed</option>
-                                    </select>
-                                </div>
 
-                                {/* Table */}
-                                {promotionLoading ? (
-                                    <div className="p-16 text-center text-slate-400 text-xs">Loading...</div>
-                                ) : (
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-[11px]">
-                                            <thead>
-                                                <tr className="bg-slate-50 border-b border-slate-200">
-                                                    <th className="text-left px-4 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Student</th>
-                                                    <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Class</th>
-                                                    <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Next</th>
-                                                    <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Result</th>
-                                                    <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">%</th>
-                                                    <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Status</th>
-                                                    <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {(() => {
-                                                    const filtered = promotionData.filter(s => {
-                                                        if (promotionStatusFilter !== 'ALL' && s.promotionStatus !== promotionStatusFilter) return false;
-                                                        if (promotionSearch) {
-                                                            const q = promotionSearch.toLowerCase();
-                                                            return s.firstName?.toLowerCase().includes(q) || s.lastName?.toLowerCase().includes(q) || s.studentCode?.toLowerCase().includes(q);
-                                                        }
-                                                        return true;
-                                                    });
-                                                    const totalPages = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
-                                                    const safePage = Math.min(promoRowPage, totalPages);
-                                                    const paged = filtered.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
-                                                    return (
-                                                        <>
-                                                            {paged.map(s => (
-                                                                <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                                                                    <td className="px-4 py-3">
-                                                                        <p className="font-medium text-slate-800">{s.firstName} {s.lastName}</p>
-                                                                        <p className="text-[9px] text-slate-400 mt-0.5">{s.studentCode}</p>
-                                                                    </td>
-                                                                    <td className="text-center px-3 py-3">
-                                                                        <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-medium">{s.currentClass?.name}{s.currentClass?.section}</span>
-                                                                    </td>
-                                                                    <td className="text-center px-3 py-3">
-                                                                        {s.nextClass ? <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-medium">{s.nextClass.name}{s.nextClass.section}</span> : <span className="text-slate-300 text-[10px]">—</span>}
-                                                                    </td>
-                                                                    <td className="text-center px-3 py-3">
-                                                                        {s.resultStatus ? <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${s.resultStatus === 'PASS' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>{s.resultStatus}</span> : <span className="text-slate-300 text-[10px]">No results</span>}
-                                                                    </td>
-                                                                    <td className="text-center px-3 py-3">
-                                                                        {s.percentage !== null ? <span className={`font-semibold ${s.percentage >= 60 ? 'text-emerald-600' : s.percentage >= 50 ? 'text-amber-600' : 'text-red-500'}`}>{s.percentage}%</span> : '—'}
-                                                                    </td>
-                                                                    <td className="text-center px-3 py-3"><PromotionBadge status={s.promotionStatus} /></td>
-                                                                    <td className="text-center px-3 py-3">
-                                                                        {(s.promotionStatus === 'PENDING' || s.promotionStatus === 'NONE') && s.resultStatus ? (
-                                                                            !promotionReady ? (
-                                                                                <span className="text-[9px] text-slate-400">4th Term required</span>
-                                                                            ) : (
-                                                                                <div className="flex items-center justify-center gap-1.5">
-                                                                                    {s.nextClass ? (
-                                                                                        <button onClick={() => setPromotionConfirm({ studentId: s.id, action: 'promote', name: `${s.firstName} ${s.lastName}`, nextClass: `${s.nextClass.name}${s.nextClass.section}`, currentClass: `${s.currentClass?.name}${s.currentClass?.section}`, percentage: s.percentage, resultStatus: s.resultStatus, studentCode: s.studentCode })}
-                                                                                            className="px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg text-[10px] font-medium transition-all shadow-sm">
-                                                                                            Promote
-                                                                                        </button>
-                                                                                    ) : (
-                                                                                        <button disabled title="Please add next class level in school settings first"
-                                                                                            className="px-3 py-1.5 bg-emerald-600/50 text-white/70 rounded-lg text-[10px] font-medium cursor-not-allowed">
-                                                                                            Promote (No Class)
-                                                                                        </button>
-                                                                                    )}
-                                                                                    <button onClick={() => setPromotionConfirm({ studentId: s.id, action: 'retain', name: `${s.firstName} ${s.lastName}`, currentClass: `${s.currentClass?.name}${s.currentClass?.section}`, percentage: s.percentage, resultStatus: s.resultStatus, studentCode: s.studentCode })}
-                                                                                        className="px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-lg text-[10px] font-medium transition-all border border-amber-200">
-                                                                                        Retain
-                                                                                    </button>
-                                                                                </div>
-                                                                            )
-                                                                        ) : s.promotionStatus === 'PROMOTED' ? (
-                                                                            <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-medium"><Check size={12} /> Promoted</span>
-                                                                        ) : s.promotionStatus === 'RETAINED' ? (
-                                                                            <span className="text-[10px] text-amber-600 font-medium">Retained</span>
-                                                                        ) : <span className="text-[10px] text-slate-300">—</span>}
-                                                                    </td>
-                                                                </tr>
-                                                            ))}
-                                                            {filtered.length === 0 && (
-                                                                <tr><td colSpan={7} className="px-4 py-16 text-center text-slate-400 text-xs">No Class 1-9 students found</td></tr>
-                                                            )}
-                                                        </>
-                                                    );
-                                                })()}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
-                                {/* Row Pagination — Class 1-9 Promotion */}
-                                {(() => {
-                                    const filtered = promotionData.filter(s => {
-                                        if (promotionStatusFilter !== 'ALL' && s.promotionStatus !== promotionStatusFilter) return false;
-                                        if (promotionSearch) {
-                                            const q = promotionSearch.toLowerCase();
-                                            return s.firstName?.toLowerCase().includes(q) || s.lastName?.toLowerCase().includes(q) || s.studentCode?.toLowerCase().includes(q);
-                                        }
-                                        return true;
-                                    });
-                                    const totalPages = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
-                                    if (filtered.length <= ROWS_PER_PAGE) return null;
-                                    return (
-                                        <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
-                                            <span className="text-[10px] text-slate-400">
-                                                Showing {(promoRowPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(promoRowPage * ROWS_PER_PAGE, filtered.length)} of {filtered.length}
-                                            </span>
-                                            <div className="flex items-center gap-1">
-                                                <button onClick={() => setPromoRowPage(p => Math.max(1, p - 1))} disabled={promoRowPage === 1}
-                                                    className="px-2.5 py-1 rounded-lg text-[10px] font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">← Prev</button>
-                                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                                    <button key={p} onClick={() => setPromoRowPage(p)}
-                                                        className={`w-7 h-7 rounded-lg text-[10px] font-semibold transition-all ${promoRowPage === p ? 'bg-green-950 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'}`}>{p}</button>
-                                                ))}
-                                                <button onClick={() => setPromoRowPage(p => Math.min(totalPages, p + 1))} disabled={promoRowPage === totalPages}
-                                                    className="px-2.5 py-1 rounded-lg text-[10px] font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">Next →</button>
+                                    {/* Summary */}
+                                    <div className="grid grid-cols-5 divide-x divide-slate-100 border-b border-slate-100 bg-slate-50/50">
+                                        {[
+                                            { label: 'Total', value: promotionData.length, color: 'text-slate-800', dot: 'bg-slate-400' },
+                                            { label: 'Promoted', value: promotionData.filter(s => s.promotionStatus === 'PROMOTED').length, color: 'text-green-950', dot: 'bg-emerald-500' },
+                                            { label: 'Retained', value: promotionData.filter(s => s.promotionStatus === 'RETAINED').length, color: 'text-red-950', dot: 'bg-amber-500' },
+                                            { label: 'Pending', value: promotionData.filter(s => s.promotionStatus === 'PENDING').length, color: 'text-yellow-950', dot: 'bg-red-400' },
+                                            { label: 'Remaining', value: promotionData.filter(s => s.promotionStatus === 'NONE').length, color: 'text-slate-400', dot: 'bg-slate-300' },
+                                        ].map((st, i) => (
+                                            <div key={i} className="px-4 py-3 text-center">
+                                                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center gap-1">
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
+                                                    {st.label}
+                                                </p>
+                                                <p className={`text-lg font-semibold ${st.color} mt-0.5`}>{st.value}</p>
                                             </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Filters */}
+                                    <div className="px-4 py-3 border-b border-slate-100 flex flex-wrap items-center gap-3">
+                                        <div className="relative flex-1 min-w-[180px] max-w-xs">
+                                            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
+                                            <input type="text" placeholder="Search student..." value={promotionSearch} onChange={(e) => setPromotionSearch(e.target.value)}
+                                                className="w-full pl-8 pr-3 py-1.5 text-[11px] bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-slate-400 transition-all" />
                                         </div>
-                                    );
-                                })()}
-                            </div>
+                                        <select value={promotionClassFilter} onChange={(e) => setPromotionClassFilter(e.target.value)}
+                                            className="appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-[11px] py-1.5 pl-3 pr-8 rounded-lg outline-none focus:border-slate-400 cursor-pointer">
+                                            <option value="">All Classes</option>
+                                            {promotionClasses.map(c => <option key={c.id} value={c.id}>{c.name}{c.section}</option>)}
+                                        </select>
+                                        <select value={promotionStatusFilter} onChange={(e) => setPromotionStatusFilter(e.target.value)}
+                                            className="appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-[11px] py-1.5 pl-3 pr-8 rounded-lg outline-none focus:border-slate-400 cursor-pointer">
+                                            <option value="ALL">All Status</option>
+                                            <option value="PROMOTED">Promoted</option>
+                                            <option value="RETAINED">Retained</option>
+                                            <option value="PENDING">Pending</option>
+                                            <option value="NONE">Not Processed</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Table */}
+                                    {promotionLoading ? (
+                                        <div className="p-16 text-center text-slate-400 text-xs">Loading...</div>
+                                    ) : (
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-[11px]">
+                                                <thead>
+                                                    <tr className="bg-slate-50 border-b border-slate-200">
+                                                        <th className="text-left px-4 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Student</th>
+                                                        <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Class</th>
+                                                        <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Next</th>
+                                                        <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Result</th>
+                                                        <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">%</th>
+                                                        <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Status</th>
+                                                        <th className="text-center px-3 py-2.5 font-semibold text-slate-500 uppercase tracking-widest text-[9px]">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {(() => {
+                                                        const filtered = promotionData.filter(s => {
+                                                            if (promotionStatusFilter !== 'ALL' && s.promotionStatus !== promotionStatusFilter) return false;
+                                                            if (promotionSearch) {
+                                                                const q = promotionSearch.toLowerCase();
+                                                                return s.firstName?.toLowerCase().includes(q) || s.lastName?.toLowerCase().includes(q) || s.studentCode?.toLowerCase().includes(q);
+                                                            }
+                                                            return true;
+                                                        });
+                                                        const totalPages = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
+                                                        const safePage = Math.min(promoRowPage, totalPages);
+                                                        const paged = filtered.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
+                                                        return (
+                                                            <>
+                                                                {paged.map(s => (
+                                                                    <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                                                                        <td className="px-4 py-3">
+                                                                            <p className="font-medium text-slate-800">{s.firstName} {s.lastName}</p>
+                                                                            <p className="text-[9px] text-slate-400 mt-0.5">{s.studentCode}</p>
+                                                                        </td>
+                                                                        <td className="text-center px-3 py-3">
+                                                                            <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-medium">{s.currentClass?.name}{s.currentClass?.section}</span>
+                                                                        </td>
+                                                                        <td className="text-center px-3 py-3">
+                                                                            {s.nextClass ? <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-medium">{s.nextClass.name}{s.nextClass.section}</span> : <span className="text-slate-300 text-[10px]">—</span>}
+                                                                        </td>
+                                                                        <td className="text-center px-3 py-3">
+                                                                            {s.resultStatus ? <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${s.resultStatus === 'PASS' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>{s.resultStatus}</span> : <span className="text-slate-300 text-[10px]">No results</span>}
+                                                                        </td>
+                                                                        <td className="text-center px-3 py-3">
+                                                                            {s.percentage !== null ? <span className={`font-semibold ${s.percentage >= 60 ? 'text-emerald-600' : s.percentage >= 50 ? 'text-amber-600' : 'text-red-500'}`}>{s.percentage}%</span> : '—'}
+                                                                        </td>
+                                                                        <td className="text-center px-3 py-3"><PromotionBadge status={s.promotionStatus} /></td>
+                                                                        <td className="text-center px-3 py-3">
+                                                                            {(s.promotionStatus === 'PENDING' || s.promotionStatus === 'NONE') && s.resultStatus ? (
+                                                                                !promotionReady ? (
+                                                                                    <span className="text-[9px] text-slate-400">4th Term required</span>
+                                                                                ) : (
+                                                                                    <div className="flex items-center justify-center gap-1.5">
+                                                                                        {s.nextClass ? (
+                                                                                            <button onClick={() => setPromotionConfirm({ studentId: s.id, action: 'promote', name: `${s.firstName} ${s.lastName}`, nextClass: `${s.nextClass.name}${s.nextClass.section}`, currentClass: `${s.currentClass?.name}${s.currentClass?.section}`, percentage: s.percentage, resultStatus: s.resultStatus, studentCode: s.studentCode })}
+                                                                                                className="px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg text-[10px] font-medium transition-all shadow-sm">
+                                                                                                Promote
+                                                                                            </button>
+                                                                                        ) : (
+                                                                                            <button disabled title="Please add next class level in school settings first"
+                                                                                                className="px-3 py-1.5 bg-emerald-600/50 text-white/70 rounded-lg text-[10px] font-medium cursor-not-allowed">
+                                                                                                Promote (No Class)
+                                                                                            </button>
+                                                                                        )}
+                                                                                        <button onClick={() => setPromotionConfirm({ studentId: s.id, action: 'retain', name: `${s.firstName} ${s.lastName}`, currentClass: `${s.currentClass?.name}${s.currentClass?.section}`, percentage: s.percentage, resultStatus: s.resultStatus, studentCode: s.studentCode })}
+                                                                                            className="px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-lg text-[10px] font-medium transition-all border border-amber-200">
+                                                                                            Retain
+                                                                                        </button>
+                                                                                    </div>
+                                                                                )
+                                                                            ) : s.promotionStatus === 'PROMOTED' ? (
+                                                                                <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-medium"><Check size={12} /> Promoted</span>
+                                                                            ) : s.promotionStatus === 'RETAINED' ? (
+                                                                                <span className="text-[10px] text-amber-600 font-medium">Retained</span>
+                                                                            ) : <span className="text-[10px] text-slate-300">—</span>}
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                                {filtered.length === 0 && (
+                                                                    <tr><td colSpan={7} className="px-4 py-16 text-center text-slate-400 text-xs">No Class 1-9 students found</td></tr>
+                                                                )}
+                                                            </>
+                                                        );
+                                                    })()}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                    {/* Row Pagination — Class 1-9 Promotion */}
+                                    {(() => {
+                                        const filtered = promotionData.filter(s => {
+                                            if (promotionStatusFilter !== 'ALL' && s.promotionStatus !== promotionStatusFilter) return false;
+                                            if (promotionSearch) {
+                                                const q = promotionSearch.toLowerCase();
+                                                return s.firstName?.toLowerCase().includes(q) || s.lastName?.toLowerCase().includes(q) || s.studentCode?.toLowerCase().includes(q);
+                                            }
+                                            return true;
+                                        });
+                                        const totalPages = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
+                                        if (filtered.length <= ROWS_PER_PAGE) return null;
+                                        return (
+                                            <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+                                                <span className="text-[10px] text-slate-400">
+                                                    Showing {(promoRowPage - 1) * ROWS_PER_PAGE + 1}–{Math.min(promoRowPage * ROWS_PER_PAGE, filtered.length)} of {filtered.length}
+                                                </span>
+                                                <div className="flex items-center gap-1">
+                                                    <button onClick={() => setPromoRowPage(p => Math.max(1, p - 1))} disabled={promoRowPage === 1}
+                                                        className="px-2.5 py-1 rounded-lg text-[10px] font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">← Prev</button>
+                                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                                                        <button key={p} onClick={() => setPromoRowPage(p)}
+                                                            className={`w-7 h-7 rounded-lg text-[10px] font-semibold transition-all ${promoRowPage === p ? 'bg-green-950 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'}`}>{p}</button>
+                                                    ))}
+                                                    <button onClick={() => setPromoRowPage(p => Math.min(totalPages, p + 1))} disabled={promoRowPage === totalPages}
+                                                        className="px-2.5 py-1 rounded-lg text-[10px] font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all">Next →</button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
                             )}
 
                             {/* Promotion Confirmation Modal */}
@@ -2630,9 +2624,8 @@ export default function AdminDashboard() {
                                                         handleRetainStudent(promotionConfirm.studentId);
                                                     }
                                                 }}
-                                                className={`px-5 py-2 text-[10px] font-semibold rounded-lg text-white transition-all ${
-                                                    promotionConfirm.action === 'retain' ? 'bg-amber-600 hover:bg-amber-700' : promotionConfirm.action === 'graduate' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-[#052e16] hover:bg-[#0a4a25]'
-                                                }`}
+                                                className={`px-5 py-2 text-[10px] font-semibold rounded-lg text-white transition-all ${promotionConfirm.action === 'retain' ? 'bg-amber-600 hover:bg-amber-700' : promotionConfirm.action === 'graduate' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-[#052e16] hover:bg-[#0a4a25]'
+                                                    }`}
                                             >
                                                 {promotionConfirm.type === 'bulk' ? 'Process Remaining Students' : promotionConfirm.action === 'graduate' ? 'Confirm Graduate' : promotionConfirm.action === 'promote' ? 'Confirm Promote' : 'Confirm Retain'}
                                             </button>
@@ -2983,17 +2976,16 @@ export default function AdminDashboard() {
                                             <td className="py-3 pl-3 text-center font-semibold text-slate-700">{row.totalObtained}/{row.totalFull}</td>
                                             <td className="py-3 pl-3 text-center font-medium text-slate-600">{row.percentage}%</td>
                                             <td className="py-3 pl-3 text-center">
-                                                {(() => { const p = parseFloat(row.percentage); const g = (!p || p <= 0) ? 'N' : p >= 90 ? 'A+' : p >= 80 ? 'A' : p >= 70 ? 'B+' : p >= 60 ? 'B' : p >= 50 ? 'C+' : p >= 40 ? 'C' : p >= 30 ? 'D+' : p >= 20 ? 'D' : p >= 1 ? 'E' : 'N'; const cl = ['A+','A'].includes(g) ? 'text-emerald-600' : ['B+','B'].includes(g) ? 'text-blue-600' : ['C+','C'].includes(g) ? 'text-amber-600' : ['D+','D'].includes(g) ? 'text-orange-500' : g === 'E' ? 'text-red-500' : 'text-slate-400'; return <span className={`font-bold text-[11px] ${cl}`}>{g}</span>; })()}
+                                                {(() => { const p = parseFloat(row.percentage); const g = (!p || p <= 0) ? 'N' : p >= 90 ? 'A+' : p >= 80 ? 'A' : p >= 70 ? 'B+' : p >= 60 ? 'B' : p >= 50 ? 'C+' : p >= 40 ? 'C' : p >= 30 ? 'D+' : p >= 20 ? 'D' : p >= 1 ? 'E' : 'N'; const cl = ['A+', 'A'].includes(g) ? 'text-emerald-600' : ['B+', 'B'].includes(g) ? 'text-blue-600' : ['C+', 'C'].includes(g) ? 'text-amber-600' : ['D+', 'D'].includes(g) ? 'text-orange-500' : g === 'E' ? 'text-red-500' : 'text-slate-400'; return <span className={`font-bold text-[11px] ${cl}`}>{g}</span>; })()}
                                             </td>
                                             <td className="py-3 pl-3 text-center">
                                                 {(() => { const p = parseFloat(row.percentage); const gpa = (!p || p <= 0) ? 0.0 : p >= 90 ? 4.0 : p >= 80 ? 3.6 : p >= 70 ? 3.2 : p >= 60 ? 2.8 : p >= 50 ? 2.4 : p >= 40 ? 2.0 : p >= 30 ? 1.6 : p >= 20 ? 1.2 : p >= 1 ? 0.8 : 0.0; return <span className="font-medium text-[11px] text-slate-600">{gpa.toFixed(1)}</span>; })()}
                                             </td>
                                             <td className="py-3 pl-3 text-center">
-                                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wide ${
-                                                    row.overallStatus === 'PASS' ? 'bg-emerald-100 text-emerald-700' :
-                                                    row.overallStatus === 'FAIL' ? 'bg-red-100 text-red-600' :
-                                                    'bg-slate-100 text-slate-500'
-                                                }`}>{row.overallStatus}</span>
+                                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wide ${row.overallStatus === 'PASS' ? 'bg-emerald-100 text-emerald-700' :
+                                                        row.overallStatus === 'FAIL' ? 'bg-red-100 text-red-600' :
+                                                            'bg-slate-100 text-slate-500'
+                                                    }`}>{row.overallStatus}</span>
                                             </td>
                                         </tr>
                                     ))}
@@ -3012,18 +3004,18 @@ export default function AdminDashboard() {
                 className="max-w-[320px] p-5"
                 footer={
                     <div className="flex w-full gap-2">
-                        <Button 
-                            variant="secondary" 
+                        <Button
+                            variant="secondary"
                             size="sm"
-                            className="flex-1 !bg-slate-100 !text-slate-600 !shadow-none border-none py-2 !rounded-none" 
+                            className="flex-1 !bg-slate-100 !text-slate-600 !shadow-none border-none py-2 !rounded-none"
                             onClick={() => setDeleteConfirmation(null)}
                         >
                             No
                         </Button>
-                        <Button 
-                            variant="primary" 
+                        <Button
+                            variant="primary"
                             size="sm"
-                            className="flex-1 py-2 !rounded-none" 
+                            className="flex-1 py-2 !rounded-none"
                             onClick={confirmDelete}
                         >
                             Yes
@@ -3033,7 +3025,7 @@ export default function AdminDashboard() {
             >
                 <div className="text-center py-2 font-inter">
                     <p className="text-slate-600 text-[13px] leading-relaxed">
-                        Do you want to delete {deleteConfirmation?.type === 'teacher' ? 'the teacher' : 'this student'} 
+                        Do you want to delete {deleteConfirmation?.type === 'teacher' ? 'the teacher' : 'this student'}
                         <span className="block font-medium text-slate-900 mt-0.5 font-inter">{deleteConfirmation?.name}?</span>
                     </p>
                 </div>
@@ -3214,11 +3206,10 @@ function SidebarItem({ icon, label, active, onClick, badge }) {
     return (
         <button
             onClick={onClick}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-150 text-[11px] font-medium relative group ${
-                active
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-150 text-[11px] font-medium relative group ${active
                     ? 'bg-white text-[#052e16] shadow-sm font-semibold'
                     : 'text-white/50 hover:text-white/90 hover:bg-white/8'
-            }`}
+                }`}
         >
             <span className={`shrink-0 transition-colors ${active ? 'text-[#052e16]' : 'text-white/40 group-hover:text-white/70'}`}>
                 {icon}

@@ -1821,44 +1821,15 @@ router.post('/students/:studentId/promote', allowRoles('TEACHER'), async (req, r
         const promoYear = (schoolConfig?.activePerformanceYear || new Date().getFullYear()) + 1;
         const prevLabel = `${currentName}${currentSection}`;
 
-        // Resolve roll number collisions
-        const collision = await prisma.student.findFirst({
-            where: { classId: nextClass.id, rollNo: student.rollNo, id: { not: studentId } }
+        await prisma.student.update({
+            where: { id: studentId },
+            data: {
+                isApproved: true,
+                promotionStatus: 'PROMOTED',
+                promotionAcknowledgedAt: null,
+                previousClass: prevLabel
+            }
         });
-        let nextRollNo = student.rollNo;
-        if (collision) {
-            const maxRoll = await prisma.student.aggregate({ where: { classId: nextClass.id }, _max: { rollNo: true } });
-            nextRollNo = (maxRoll._max.rollNo || 0) + 1;
-        }
-
-        const oldClassId = student.classId;
-
-        await prisma.$transaction([
-            prisma.student.update({
-                where: { id: studentId },
-                data: {
-                    classId: nextClass.id,
-                    rollNo: nextRollNo,
-                    isApproved: true,
-                    promotionStatus: 'PROMOTED',
-                    promotionAcknowledgedAt: null,
-                    previousClass: prevLabel
-                }
-            }),
-            prisma.enrollment.upsert({
-                where: { studentId_classId_year: { studentId, classId: nextClass.id, year: promoYear } },
-                update: {},
-                create: { studentId, classId: nextClass.id, year: promoYear }
-            })
-        ]);
-
-        // Clean old class data
-        const oldAssignments = await prisma.assignment.findMany({ where: { classId: oldClassId }, select: { id: true } });
-        const oldIds = oldAssignments.map(a => a.id);
-        if (oldIds.length > 0) await prisma.submission.deleteMany({ where: { studentId, assignmentId: { in: oldIds } } });
-        await prisma.studentmaterialstatus.deleteMany({ where: { studentId } });
-        await prisma.quizresponse.deleteMany({ where: { studentId } });
-        await prisma.attendance.deleteMany({ where: { studentId } });
 
         // Notify parents
         if (student.parent?.length > 0) {
@@ -1867,13 +1838,13 @@ router.post('/students/:studentId/promote', allowRoles('TEACHER'), async (req, r
                     schoolId: teacher.schoolId,
                     parentId: p.id,
                     studentId,
-                    message: `${student.firstName} ${student.lastName} has been promoted to Class ${nextClassName}${currentSection}.`,
+                    message: `${student.firstName} ${student.lastName} has been promoted to Class ${(currentLevel + 1).toString()}${currentSection}. This will take effect when the session ends.`,
                     type: 'PROMOTION'
                 }))
             });
         }
 
-        res.json({ ok: true, message: `Student promoted to Class ${nextClassName}${currentSection}` });
+        res.json({ ok: true, message: `Student marked for promotion to Class ${(currentLevel + 1).toString()}${currentSection}` });
     } catch (error) {
         console.error("Teacher promote error:", error);
         res.status(500).json({ error: "Failed to promote student" });
@@ -1926,11 +1897,6 @@ router.post('/students/:studentId/retain', allowRoles('TEACHER'), async (req, re
             }
         });
 
-        await prisma.enrollment.updateMany({
-            where: { studentId, classId: student.classId },
-            data: { year: nextYear }
-        });
-
         // Notify parents
         if (student.parent?.length > 0) {
             await prisma.notification.createMany({
@@ -1938,13 +1904,13 @@ router.post('/students/:studentId/retain', allowRoles('TEACHER'), async (req, re
                     schoolId: teacher.schoolId,
                     parentId: p.id,
                     studentId,
-                    message: `${student.firstName} ${student.lastName} has been retained in Class ${retainClassLabel}.`,
+                    message: `${student.firstName} ${student.lastName} has been retained in Class ${retainClassLabel} for the next academic year.`,
                     type: 'PROMOTION'
                 }))
             });
         }
 
-        res.json({ ok: true, message: "Student retained in the same class" });
+        res.json({ ok: true, message: `Student marked for retention in Class ${retainClassLabel}` });
     } catch (error) {
         console.error("Teacher retain error:", error);
         res.status(500).json({ error: "Failed to retain student" });
