@@ -124,8 +124,8 @@ export function AuthProvider({ children }) {
         toast.success("Logged out successfully");
     };
 
-    const registerAdmin = async (schoolName, adminName, username, password, email, schoolCode, emailPass = "") => {
-        const result = await authService.registerAdmin({ schoolName, adminName, username, password, email, schoolCode, emailPass });
+    const registerAdmin = async (schoolName, firstName, lastName, username, password, email, schoolCode, emailPass = "") => {
+        const result = await authService.registerAdmin({ schoolName, firstName, lastName, username, password, email, schoolCode, emailPass });
         if (result.success) {
             toast.success("School Registered!");
             return { success: true, schoolCode: schoolCode, verificationCode: result.verificationCode };
@@ -133,8 +133,8 @@ export function AuthProvider({ children }) {
         return { success: false, message: result.message };
     };
 
-    const registerTeacher = async (name, username, password, email, schoolCode, assignments, classTeacherFor = null) => {
-        const result = await authService.registerTeacher({ name, username, password, email, schoolCode, assignments, classTeacherFor });
+    const registerTeacher = async (firstName, lastName, username, password, email, schoolCode, assignments, classTeacherFor = null) => {
+        const result = await authService.registerTeacher({ firstName, lastName, username, password, email, schoolCode, assignments, classTeacherFor });
         if (result.success) {
             toast.success("Teacher Registered!");
             return { success: true, verificationCode: result.verificationCode };
@@ -142,18 +142,18 @@ export function AuthProvider({ children }) {
         return { success: false, message: result.message };
     };
 
-    const registerStudent = async (name, username, password, schoolCode, className, rollNo, email) => {
+    const registerStudent = async (firstName, lastName, username, password, schoolCode, className, rollNo, email) => {
         return authService.registerStudent({
-            name, username, password, schoolCode, className, rollNo, email
+            firstName, lastName, username, password, schoolCode, className, rollNo, email
         });
     };
 
-    const registerParent = async (email, username, password, schoolCode, studentCode, name) => {
+    const registerParent = async (email, username, password, schoolCode, studentCodes, firstName, lastName) => {
         let result;
-        if (name) {
-            result = await authService.registerParentWithName({ name, email, username, password, schoolCode, studentCode });
+        if (firstName) {
+            result = await authService.registerParent({ firstName, lastName, email, username, password, schoolCode, studentCodes });
         } else {
-            result = await authService.registerParent({ email, username, password, schoolCode, studentCode });
+            result = await authService.registerParent({ email, username, password, schoolCode, studentCodes });
         }
 
         if (result.success) {

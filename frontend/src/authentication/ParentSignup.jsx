@@ -64,7 +64,6 @@ export default function ParentSignup() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
-        setIsLoading(true);
 
         // School Code Validation
         const schoolCodeRegex = /^[A-Z]{2}\d{2}$/;
@@ -73,13 +72,16 @@ export default function ParentSignup() {
             return;
         }
 
+        setIsLoading(true);
+
         const result = await registerParent(
             formData.email,
             formData.username,
             formData.password,
             formData.schoolCode,
             formData.studentCodes.filter(code => code.trim() !== ""),
-            `${formData.firstName} ${formData.lastName}`.trim()
+            formData.firstName.trim(),
+            formData.lastName.trim()
         );
 
         if (result.success) {

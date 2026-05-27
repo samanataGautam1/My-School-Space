@@ -46,7 +46,8 @@ export default function AdminSignup() {
 
         const result = await registerAdmin(
             formData.schoolName,
-            `${formData.firstName} ${formData.lastName}`.trim(),
+            formData.firstName.trim(),
+            formData.lastName.trim(),
             formData.username,
             formData.password,
             formData.email,

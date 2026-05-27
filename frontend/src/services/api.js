@@ -73,15 +73,11 @@ export const authService = {
 
     registerAdmin: async (data) => {
         try {
-            // Transform data to match backend expectations
-            const [firstName, ...lastNameParts] = data.adminName.split(' ');
-            const lastName = lastNameParts.join(' ') || firstName;
-
             const payload = {
                 username: data.username,
                 password: data.password,
-                firstName: firstName,
-                lastName: lastName,
+                firstName: data.firstName,
+                lastName: data.lastName,
                 schoolName: data.schoolName,
                 schoolCode: data.schoolCode,
                 email: data.email,
@@ -105,15 +101,11 @@ export const authService = {
 
     registerTeacher: async (data) => {
         try {
-            // Transform data to match backend expectations
-            const [firstName, ...lastNameParts] = data.name.split(' ');
-            const lastName = lastNameParts.join(' ') || firstName;
-
             const payload = {
                 username: data.username,
                 password: data.password,
-                firstName: firstName,
-                lastName: lastName,
+                firstName: data.firstName,
+                lastName: data.lastName,
                 schoolCode: data.schoolCode,
                 assignments: data.assignments,
                 email: data.email,
@@ -136,15 +128,11 @@ export const authService = {
 
     registerStudent: async (data) => {
         try {
-            // Transform data to match backend expectations
-            const [firstName, ...lastNameParts] = data.name.split(' ');
-            const lastName = lastNameParts.join(' ') || firstName;
-
             const payload = {
                 username: data.username,
                 password: data.password,
-                firstName: firstName,
-                lastName: lastName,
+                firstName: data.firstName,
+                lastName: data.lastName,
                 schoolCode: data.schoolCode,
                 className: data.className,
                 rollNo: data.rollNo,
@@ -168,17 +156,13 @@ export const authService = {
 
     registerParent: async (data) => {
         try {
-            // Transform data to match backend expectations
-            const [firstName, ...lastNameParts] = (data.name || '').split(' ');
-            const lastName = lastNameParts.join(' ') || firstName || '';
-
             const payload = {
                 username: data.username,
                 password: data.password,
-                firstName: firstName || 'Parent',
-                lastName: lastName || 'User',
+                firstName: data.firstName || 'Parent',
+                lastName: data.lastName || 'User',
                 email: data.email,
-                studentCodes: Array.isArray(data.studentCode) ? data.studentCode : [data.studentCode]
+                studentCodes: Array.isArray(data.studentCodes) ? data.studentCodes : [data.studentCode].filter(Boolean)
             };
 
             const response = await api.post('/api/signup/parent', payload);

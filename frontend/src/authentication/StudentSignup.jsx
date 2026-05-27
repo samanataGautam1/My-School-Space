@@ -28,7 +28,6 @@ export default function StudentSignup() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
-        setIsLoading(true);
 
         // School Code Validation
         const schoolCodeRegex = /^[A-Z]{2}\d{2}$/;
@@ -37,8 +36,11 @@ export default function StudentSignup() {
             return;
         }
 
+        setIsLoading(true);
+
         const result = await registerStudent(
-            `${formData.firstName} ${formData.lastName}`.trim(),
+            formData.firstName.trim(),
+            formData.lastName.trim(),
             formData.username,
             formData.password,
             formData.schoolCode,

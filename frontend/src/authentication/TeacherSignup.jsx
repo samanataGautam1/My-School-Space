@@ -46,7 +46,6 @@ export default function TeacherSignup() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
-        setIsLoading(true);
 
         let finalAssignments = [...assignments];
 
@@ -84,8 +83,11 @@ export default function TeacherSignup() {
             return;
         }
 
+        setIsLoading(true);
+
         const result = await registerTeacher(
-            `${formData.firstName} ${formData.lastName}`.trim(),
+            formData.firstName.trim(),
+            formData.lastName.trim(),
             formData.username,
             formData.password,
             formData.email,
