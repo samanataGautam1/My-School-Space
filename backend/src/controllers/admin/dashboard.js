@@ -1706,9 +1706,13 @@ router.post('/publish-terminal', async (req, res) => {
             `;
 
             try {
-              await mailer.sendEmail(parent.user.email, `Official Grade Sheet: ${student.firstName} - ${examTerminal}`, emailHtml, schoolId);
+              await mailer.sendEmail({
+                to: parent.user.email,
+                subject: `Official Grade Sheet: ${student.firstName} - ${examTerminal}`,
+                html: emailHtml
+              });
             } catch (err) {
-
+              console.error(`Email delivery failed for student ${student.id}:`, err.message);
             }
           }
         }

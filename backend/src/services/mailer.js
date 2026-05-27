@@ -19,7 +19,17 @@ if (process.env.SENDGRID_API_KEY) {
  * 2. Resend API
  * 3. Nodemailer SMTP (Fallback)
  */
-async function sendEmail({ to, subject, html, smtpUser, smtpPass }) {
+async function sendEmail(...args) {
+    let to, subject, html, smtpUser, smtpPass;
+
+    if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null) {
+        // New object-based pattern: sendEmail({ to, subject, html, ... })
+        ({ to, subject, html, smtpUser, smtpPass } = args[0]);
+    } else {
+        // Legacy positional pattern: sendEmail(to, subject, html, smtpUser, smtpPass)
+        [to, subject, html, smtpUser, smtpPass] = args;
+    }
+
     console.log(`📧 Attempting to send email to ${to}...`);
 
     // --- 1. TRY SENDGRID (PRIMARY FOR ALL) ---
