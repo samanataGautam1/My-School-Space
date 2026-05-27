@@ -2396,6 +2396,23 @@ router.post('/end-session', async (req, res) => {
       const promoYear = newYear;
       const allClasses = await prisma.renamedclass.findMany({ where: { schoolId } });
 
+      // ── Bulk Cleanup for all active students (Fresh start for next year) ──
+      const allActiveStudents = await prisma.student.findMany({
+        where: { schoolId, isApproved: true },
+        select: { id: true, classId: true }
+      });
+      const allActiveStudentIds = allActiveStudents.map(s => s.id);
+
+      if (allActiveStudentIds.length > 0) {
+        // Delete all submissions, progress, and attendance for this school to clear current session data
+        await prisma.submission.deleteMany({ where: { studentId: { in: allActiveStudentIds } } });
+        await prisma.studentmaterialstatus.deleteMany({ where: { studentId: { in: allActiveStudentIds } } });
+        await prisma.quizresponse.deleteMany({ where: { studentId: { in: allActiveStudentIds } } });
+        await prisma.attendance.deleteMany({ where: { studentId: { in: allActiveStudentIds } } });
+      }
+
+      const processedIds = [];
+
       // 1. Handle PROMOTED Class 1-9 students (move to next class)
       const promotedStudents = await prisma.student.findMany({
         where: { schoolId, promotionStatus: 'PROMOTED' },
@@ -2418,7 +2435,6 @@ router.post('/end-session', async (req, res) => {
           continue;
         }
 
-        const oldClassId = student.classId;
         const rollClash = await prisma.student.findFirst({
           where: { classId: nextClass.id, rollNo: student.rollNo, id: { not: student.id } },
           select: { id: true }
@@ -2446,12 +2462,7 @@ router.post('/end-session', async (req, res) => {
           })
         ]);
 
-        // Clean up old session data
-        const oldAsgIds = (await prisma.assignment.findMany({ where: { classId: oldClassId }, select: { id: true } })).map(a => a.id);
-        if (oldAsgIds.length > 0) await prisma.submission.deleteMany({ where: { studentId: student.id, assignmentId: { in: oldAsgIds } } });
-        await prisma.studentmaterialstatus.deleteMany({ where: { studentId: student.id } });
-        await prisma.quizresponse.deleteMany({ where: { studentId: student.id } });
-        await prisma.attendance.deleteMany({ where: { studentId: student.id } });
+        processedIds.push(student.id);
 
         const parents = await prisma.parent.findMany({ where: { student: { some: { id: student.id } } } });
         if (parents.length > 0) {
@@ -2470,7 +2481,8 @@ router.post('/end-session', async (req, res) => {
         where: {
           schoolId,
           isApproved: true,
-          promotionStatus: { notIn: ['PROMOTED', 'GRADUATED', 'ALUMNI'] },
+          id: { notIn: processedIds },
+          promotionStatus: { notIn: ['GRADUATED', 'ALUMNI'] },
           Renamedclass: { name: { not: FINAL_CLASS_LEVEL.toString() } }
         },
         include: { Renamedclass: true }
@@ -2479,7 +2491,6 @@ router.post('/end-session', async (req, res) => {
       for (const student of otherStudents) {
         if (!student.classId) continue;
 
-        // Ensure enrollment for next year in the SAME class
         await prisma.$transaction([
           prisma.student.update({
             where: { id: student.id },
@@ -2495,13 +2506,6 @@ router.post('/end-session', async (req, res) => {
             create: { studentId: student.id, classId: student.classId, year: promoYear }
           })
         ]);
-
-        // Clean up old session data but keep classId
-        const asgIds = (await prisma.assignment.findMany({ where: { classId: student.classId }, select: { id: true } })).map(a => a.id);
-        if (asgIds.length > 0) await prisma.submission.deleteMany({ where: { studentId: student.id, assignmentId: { in: asgIds } } });
-        await prisma.studentmaterialstatus.deleteMany({ where: { studentId: student.id } });
-        await prisma.quizresponse.deleteMany({ where: { studentId: student.id } });
-        await prisma.attendance.deleteMany({ where: { studentId: student.id } });
 
         if (student.promotionStatus === 'RETAINED') {
           const parents = await prisma.parent.findMany({ where: { student: { some: { id: student.id } } } });
