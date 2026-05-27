@@ -331,12 +331,17 @@ router.post("/email", async (req, res) => {
         }) : null;
 
         const { sendWelcomeEmail } = require("../../services/mailer");
-        await sendWelcomeEmail(
-            data.email,
-            data.firstName || "User",
-            data.schoolId || null,
-            { smtpUser: schoolForWelcome?.email, smtpPass: schoolForWelcome?.emailPass }
-        );
+        try {
+            await sendWelcomeEmail(
+                data.email,
+                data.firstName || "User",
+                data.schoolId || null,
+                { smtpUser: schoolForWelcome?.email, smtpPass: schoolForWelcome?.emailPass }
+            );
+        } catch (mailErr) {
+            // ⚠️ Welcome email failed but verification already succeeded — non-blocking
+            console.error("⚠️ [VERIFY] Welcome email failed (non-blocking):", mailErr.message);
+        }
 
         return res.json({
             ok: true,
@@ -397,7 +402,12 @@ router.post("/resend-code", async (req, res) => {
             }
 
             const { sendVerificationEmail } = require("../../services/mailer");
-            await sendVerificationEmail(email, verificationCode, pending.data.firstName || "User", smtpConfig);
+            try {
+                await sendVerificationEmail(email, verificationCode, pending.data.firstName || "User", smtpConfig);
+            } catch (mailErr) {
+                // ⚠️ Email failed but code is updated in DB — non-blocking
+                console.error("⚠️ [RESEND] Email failed (non-blocking):", mailErr.message);
+            }
 
             return res.json({
                 ok: true,
@@ -435,7 +445,12 @@ router.post("/resend-code", async (req, res) => {
             }
 
             const { sendVerificationEmail } = require("../../services/mailer");
-            await sendVerificationEmail(email, verificationCode, user.firstName || "User", smtpConfig);
+            try {
+                await sendVerificationEmail(email, verificationCode, user.firstName || "User", smtpConfig);
+            } catch (mailErr) {
+                // ⚠️ Email failed but code is updated in DB — non-blocking
+                console.error("⚠️ [RESEND] Email failed (non-blocking):", mailErr.message);
+            }
 
             return res.json({
                 ok: true,

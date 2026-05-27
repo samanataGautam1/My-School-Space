@@ -162,9 +162,9 @@ router.post('/admin', async (req, res) => {
         { smtpUser: emailValidation.value, smtpPass: emailPass }
       );
     } catch (mailErr) {
-      console.error("❌ Admin OTP dispatch failed, cleaning up pending registration:", mailErr.message);
-      await prisma.pendingregistration.deleteMany({ where: { email: emailValidation.value } });
-      throw mailErr; // Re-throw to be caught by the outer catch block
+      // ⚠️ Email failed but do NOT block signup. Pending registration is kept.
+      // User can still verify if email eventually arrives, or admin can resend.
+      console.error("⚠️ [ADMIN_SIGNUP] Email dispatch failed (non-blocking):", mailErr.message);
     }
 
 
@@ -383,12 +383,8 @@ router.post("/teacher", async (req, res) => {
       );
       console.log(`[TEACHER_SIGNUP] Email dispatch triggered successfully.`);
     } catch (mailErr) {
-      console.error(`[TEACHER_SIGNUP] EMAIL DISPATCH FAILED: ${mailErr.message}. Cleaning up...`);
-      await prisma.pendingregistration.deleteMany({ where: { email: emailValidation.value } });
-      return res.status(500).json({
-        error: "Failed to send verification email. Configuration might be missing or incorrect. " + mailErr.message,
-        details: mailErr.message
-      });
+      // ⚠️ Email failed but do NOT block signup. Pending registration is kept.
+      console.error(`⚠️ [TEACHER_SIGNUP] Email dispatch failed (non-blocking): ${mailErr.message}`);
     }
 
 
@@ -556,12 +552,8 @@ router.post("/student", async (req, res) => {
       );
       console.log(`[STUDENT_SIGNUP] Email dispatch triggered successfully.`);
     } catch (mailErr) {
-      console.error(`[STUDENT_SIGNUP] EMAIL DISPATCH FAILED: ${mailErr.message}. Cleaning up...`);
-      await prisma.pendingregistration.deleteMany({ where: { email: emailValidation.value } });
-      return res.status(500).json({
-        error: "Failed to send verification email. Configuration might be missing or incorrect. " + mailErr.message,
-        details: mailErr.message
-      });
+      // ⚠️ Email failed but do NOT block signup. Pending registration is kept.
+      console.error(`⚠️ [STUDENT_SIGNUP] Email dispatch failed (non-blocking): ${mailErr.message}`);
     }
 
     res.json({
@@ -705,12 +697,8 @@ router.post("/parent", async (req, res) => {
       );
       console.log(`[PARENT_SIGNUP] Email dispatch triggered successfully.`);
     } catch (mailErr) {
-      console.error(`[PARENT_SIGNUP] EMAIL DISPATCH FAILED: ${mailErr.message}. Cleaning up...`);
-      await prisma.pendingregistration.deleteMany({ where: { email: emailValidation.value } });
-      return res.status(500).json({
-        error: "Failed to send verification email. Configuration might be missing or incorrect. " + mailErr.message,
-        details: mailErr.message
-      });
+      // ⚠️ Email failed but do NOT block signup. Pending registration is kept.
+      console.error(`⚠️ [PARENT_SIGNUP] Email dispatch failed (non-blocking): ${mailErr.message}`);
     }
 
 
