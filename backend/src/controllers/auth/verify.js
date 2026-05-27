@@ -199,10 +199,11 @@ router.post("/email", async (req, res) => {
                         }
                     });
 
-                    // Also ensure they are in the classteachers list
+                    // Also ensure they are in the classteachers list and set isClassTeacher flag
                     await prisma.teacher.update({
                         where: { id: teacher.id },
                         data: {
+                            isClassTeacher: true,
                             Renamedclass_classteachers: {
                                 connect: { id: cls.id }
                             }
