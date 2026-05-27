@@ -16,31 +16,48 @@ const smtpConfig = {
 /* ================= CORE SEND FUNCTION ================= */
 
 async function sendEmail({ to, subject, html, smtpUser, smtpPass }) {
-    // 1. Try Resend if API key is present and NO custom SMTP is provided
-    // (If custom SMTP is provided, we prioritize it because the user explicitly wants to use it)
-    if (!smtpPass && process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 're_123456789') {
+    console.log(`📧 Attempting to send email to ${to}...`);
+
+    // 1. Try Resend if API key is present AND custom SMTP is not fully provided
+    const hasCustomSMTP = smtpUser && smtpPass;
+
+    if (!hasCustomSMTP && process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 're_123456789') {
         try {
             const from = process.env.RESEND_FROM_EMAIL || "School Space <onboarding@resend.dev>";
+            if (!process.env.RESEND_FROM_EMAIL) {
+                console.warn("⚠️  RESEND_FROM_EMAIL missing. Using 'onboarding@resend.dev'. Resend will ONLY send to the account owner in this mode.");
+            }
+            console.log("📤 Trying Resend...");
             const { data, error } = await resend.emails.send({ from, to, subject, html });
 
             if (!error) {
-                console.log("📧 Email sent via Resend:", data.id);
+                console.log("✅ Email sent via Resend:", data.id);
                 return data;
             }
-            console.error("❌ Resend error:", error);
+            console.error("❌ Resend error:", JSON.stringify(error));
+            if (error?.message?.includes("onboarding")) {
+                console.warn("💡 TIP: Verify your domain in Resend or provide SMTP credentials to send to anyone.");
+            }
         } catch (resendErr) {
             console.error("❌ Resend attempt failed:", resendErr.message);
         }
     }
 
     // 2. Fallback to Nodemailer (SMTP)
-    const user = smtpUser || process.env.EMAIL_USER;
-    const pass = smtpPass || process.env.EMAIL_PASS;
+    const user = hasCustomSMTP ? smtpUser : process.env.EMAIL_USER;
+    const pass = hasCustomSMTP ? smtpPass : process.env.EMAIL_PASS;
 
-    console.log(`🔄 Sending via SMTP (${user})...`);
+    if (hasCustomSMTP) {
+        console.log(`🔄 Using School-Specific SMTP. User: ${user}, Pass: [PROVIDED]`);
+    } else {
+        const maskedPass = pass ? (pass.substring(0, 3) + "****" + pass.substring(pass.length - 3)) : 'NONE';
+        console.log(`🔄 Using System-Wide SMTP fallback. User: ${user || 'None'}, Pass: ${maskedPass}`);
+    }
+
     try {
         if (!user || !pass) {
-            throw new Error("SMTP credentials missing (EMAIL_USER/EMAIL_PASS)");
+            console.error("❌ No SMTP credentials available for fallback.");
+            throw new Error("Email delivery configuration missing (No Resend & No SMTP). Please check EMAIL_USER and EMAIL_PASS environment variables.");
         }
 
         const transporter = nodemailer.createTransport({
@@ -55,11 +72,11 @@ async function sendEmail({ to, subject, html, smtpUser, smtpPass }) {
             html,
         });
 
-        console.log("📧 Email sent via SMTP:", info.messageId);
+        console.log("✅ Email sent via SMTP:", info.messageId);
         return info;
     } catch (smtpErr) {
         console.error("❌ SMTP failed:", smtpErr.message);
-        throw new Error("All email delivery methods failed.");
+        throw new Error(`Email delivery failed: ${smtpErr.message}`);
     }
 }
 

@@ -65,7 +65,7 @@ router.post('/admin', async (req, res) => {
   }
 
   // Validate email - REQUIRE GMAIL FOR ADMIN
-  const emailValidation = validateEmail(email, true);
+  const emailValidation = validateEmail(email, false);
   if (!emailValidation.valid) {
     return res.status(400).json({ error: emailValidation.error });
   }
@@ -376,6 +376,10 @@ router.post("/teacher", async (req, res) => {
       console.log(`[TEACHER_SIGNUP] Email dispatch triggered successfully.`);
     } catch (mailErr) {
       console.error(`[TEACHER_SIGNUP] EMAIL DISPATCH FAILED: ${mailErr.message}`);
+      return res.status(500).json({
+        error: "Failed to send verification email. " + mailErr.message,
+        details: mailErr.message
+      });
     }
 
 
@@ -718,6 +722,10 @@ router.post("/parent", async (req, res) => {
       console.log(`[PARENT_SIGNUP] Email dispatch triggered successfully.`);
     } catch (mailErr) {
       console.error(`[PARENT_SIGNUP] EMAIL DISPATCH FAILED: ${mailErr.message}`);
+      return res.status(500).json({
+        error: "Failed to send verification email. " + mailErr.message,
+        details: mailErr.message
+      });
     }
 
 
