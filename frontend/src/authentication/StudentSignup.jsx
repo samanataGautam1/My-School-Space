@@ -19,6 +19,7 @@ export default function StudentSignup() {
         schoolCode: "",
         className: "",
         rollNo: "",
+        email: "",
     });
     const [error, setError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -40,10 +41,14 @@ export default function StudentSignup() {
             formData.password,
             formData.schoolCode,
             formData.className,
-            formData.rollNo
+            formData.rollNo,
+            formData.email
         );
 
-        if (result.success) {
+        if (result.requiresVerification) {
+            toast.success("Registration initiated! Please verify your email.");
+            navigate('/verify-email', { state: { email: formData.email } });
+        } else if (result.success) {
             toast.success("Registration submitted! Please wait for your class head to approve your account.", { duration: 8000 });
             navigate('/login');
         } else {
@@ -111,6 +116,18 @@ export default function StudentSignup() {
                         placeholder="15"
                         value={formData.rollNo}
                         onChange={e => setFormData({ ...formData, rollNo: e.target.value })}
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-[10px] uppercase font-bold text-slate-500 mb-1 ml-1">Email Address</label>
+                    <input
+                        type="email"
+                        className="w-full h-8 px-3 rounded-lg bg-gray-50 border border-slate-200 text-slate-900 focus:bg-white focus:ring-2 focus:ring-green-950 transition-all placeholder:text-slate-400 text-sm"
+                        placeholder="jane.doe@example.com"
+                        value={formData.email}
+                        onChange={e => setFormData({ ...formData, email: e.target.value })}
+                        required
                     />
                 </div>
 

@@ -147,7 +147,8 @@ export const authService = {
                 lastName: lastName,
                 schoolCode: data.schoolCode,
                 className: data.className,
-                rollNo: data.rollNo
+                rollNo: data.rollNo,
+                email: data.email
             };
 
             const response = await api.post('/api/signup/student', payload);

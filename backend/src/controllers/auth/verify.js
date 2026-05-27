@@ -182,29 +182,40 @@ router.post("/email", async (req, res) => {
         // ======================
         else if (data.type === "STUDENT") {
             const school = await prisma.school.findUnique({
-                where: { code: data.schoolCode }
+                where: { id: data.schoolId },
+                select: { id: true, adminId: true, code: true }
             });
 
-            if (!school) throw new Error("Invalid school code");
+            if (!school) throw new Error("Invalid school reference");
 
+            // Parse class name
             const classMatch = data.className.match(/^(\d+)\s*([A-Za-z])$/);
+            if (!classMatch) throw new Error("Invalid class format in pending data");
 
-            const cls = await prisma.renamedclass.upsert({
+            const gradeName = classMatch[1];
+            const sectionName = classMatch[2].toUpperCase();
+
+            // Find or Create Class (Lazy Creation)
+            const classModel = prisma.renamedclass || prisma.Renamedclass;
+            let cls = await classModel.findFirst({
                 where: {
-                    name_section_schoolId: {
-                        name: classMatch[1],
-                        section: classMatch[2].toUpperCase(),
-                        schoolId: school.id
-                    }
-                },
-                update: {},
-                create: {
-                    name: classMatch[1],
-                    section: classMatch[2].toUpperCase(),
-                    schoolId: school.id
+                    schoolId: school.id,
+                    name: gradeName,
+                    section: sectionName
                 }
             });
 
+            if (!cls) {
+                cls = await classModel.create({
+                    data: {
+                        name: gradeName,
+                        section: sectionName,
+                        schoolId: school.id
+                    }
+                });
+            }
+
+            // Create User (Inactive until approved, but email is now verified)
             const newUser = await prisma.user.create({
                 data: {
                     username: data.username,
@@ -214,25 +225,52 @@ router.post("/email", async (req, res) => {
                     email: data.email,
                     role: "STUDENT",
                     emailVerified: true,
+                    isActive: false, // Students need manual approval
                     schoolId: school.id
                 }
             });
 
-            await prisma.student.upsert({
-                where: { email: data.email },
-                update: {
-                    userId: newUser.id,
-                    classId: cls.id
-                },
-                create: {
-                    email: data.email,
-                    userId: newUser.id,
-                    classId: cls.id,
-                    schoolId: school.id,
+            // Helper to generate student code (redundant but safe)
+            const generateStudentCode = (schoolCode) => {
+                const prefix = (schoolCode || 'SCHL').substring(0, 4).toUpperCase();
+                const suffix = require('crypto').randomBytes(2).toString('hex').toUpperCase();
+                return `${prefix}${suffix}`;
+            };
+
+            const newStudent = await prisma.student.create({
+                data: {
                     firstName: data.firstName,
-                    lastName: data.lastName
+                    lastName: data.lastName,
+                    rollNo: data.rollNo,
+                    studentCode: generateStudentCode(school.code),
+                    userId: newUser.id,
+                    schoolId: school.id,
+                    classId: cls.id,
+                    isApproved: false
                 }
             });
+
+            // Notify the Class Teacher or Admin
+            const notificationMsg = `New student verified: ${data.firstName} ${data.lastName} for Class ${gradeName}${sectionName}. Approval required.`;
+            if (cls.classHeadId) {
+                await prisma.notification.create({
+                    data: {
+                        teacherId: cls.classHeadId,
+                        message: notificationMsg,
+                        schoolId: school.id,
+                        type: 'APPROVAL_REQUEST'
+                    }
+                });
+            } else if (school.adminId) {
+                await prisma.notification.create({
+                    data: {
+                        adminId: school.adminId,
+                        message: notificationMsg,
+                        schoolId: school.id,
+                        type: 'APPROVAL_REQUEST'
+                    }
+                });
+            }
         }
 
         // ======================

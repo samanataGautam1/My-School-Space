@@ -142,13 +142,16 @@ export function AuthProvider({ children }) {
         return { success: false, message: result.message };
     };
 
-    const registerStudent = async (name, username, password, schoolCode, className, rollNo) => {
-        const result = await authService.registerStudent({ name, username, password, schoolCode, className, rollNo });
-        if (result.success) {
-            toast.success("Student Registered!");
-            return { success: true, studentCode: result.studentCode, verificationCode: result.verificationCode };
+    const registerStudent = async (name, username, password, schoolCode, className, rollNo, email) => {
+        setLoading(true);
+        try {
+            const result = await authService.registerStudent({
+                name, username, password, schoolCode, className, rollNo, email
+            });
+            return result;
+        } finally {
+            setLoading(false);
         }
-        return { success: false, message: result.message };
     };
 
     const registerParent = async (email, username, password, schoolCode, studentCode, name) => {
