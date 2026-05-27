@@ -2,6 +2,8 @@ const express = require('express');
 const path = require('path');
 const prisma = require("../../../prisma/prisma");
 const router = express.Router();
+const fs = require('fs');
+const { uploadToCloudinary, deleteFromCloudinary, isCloudinaryConfigured } = require('../../utils/cloudinary');
 const { updateStudentAssignmentPerformance } = require('./performanceHelper');
 
 console.log("[ASSIGN] Assignment Router Loaded");
@@ -83,7 +85,22 @@ router.post('/create', lazyUpload, async (req, res) => {
 
         let contentUrl = req.body.contentUrl;
         if (req.file) {
-            contentUrl = `/assignments/${req.file.filename}`;
+            if (isCloudinaryConfigured()) {
+                try {
+                    const result = await uploadToCloudinary(req.file.path, {
+                        resource_type: 'auto',
+                        folder: 'school-space/assignments'
+                    });
+                    contentUrl = result.secure_url;
+                    // Clean up local temp file
+                    try { fs.unlinkSync(req.file.path); } catch (e) { /* ignore */ }
+                } catch (err) {
+                    console.error("Cloudinary Upload Error:", err);
+                    return res.status(500).json({ error: "Failed to upload file to cloud storage." });
+                }
+            } else {
+                contentUrl = `/assignments/${req.file.filename}`;
+            }
         }
 
         if (!teacherUserId) {
@@ -524,14 +541,31 @@ router.post('/submit', lazyUpload, async (req, res) => {
             }
         }
 
+        let fileUrl = req.body.fileUrl;
+        if (req.file) {
+            if (isCloudinaryConfigured()) {
+                try {
+                    const result = await uploadToCloudinary(req.file.path, {
+                        resource_type: 'auto',
+                        folder: 'school-space/submissions'
+                    });
+                    fileUrl = result.secure_url;
+                    // Clean up local temp file
+                    try { fs.unlinkSync(req.file.path); } catch (e) { /* ignore */ }
+                } catch (err) {
+                    console.error("Cloudinary Upload Error:", err);
+                    return res.status(500).json({ error: "Failed to upload submission to cloud storage." });
+                }
+            } else {
+                fileUrl = `/assignments/${req.file.filename}`;
+            }
+        }
+
         const submissionData = {
             assignmentId: parseInt(assignmentId),
             studentId: student.id,
             submittedAt: new Date(),
-            // We need a field for the file! 
-            // Temporarily I'll store it in a way or I MUST add the column.
-            // I will add `fileUrl String?` to Submission model.
-            fileUrl: req.file ? `/assignments/${req.file.filename}` : null
+            fileUrl: fileUrl
         };
 
         if (existingSubmission) {
@@ -539,17 +573,13 @@ router.post('/submit', lazyUpload, async (req, res) => {
                 where: { id: existingSubmission.id },
                 data: {
                     submittedAt: new Date(),
-                    fileUrl: req.file ? `/assignments/${req.file.filename}` : existingSubmission.fileUrl
+                    fileUrl: fileUrl || existingSubmission.fileUrl
                 }
             });
             return res.json({ ok: true, data: updated });
         } else {
             const newSubmission = await prisma.submission.create({
-                data: {
-                    assignmentId: parseInt(assignmentId),
-                    studentId: student.id,
-                    fileUrl: req.file ? `/assignments/${req.file.filename}` : null
-                }
+                data: submissionData
             });
             return res.json({ ok: true, data: newSubmission });
         }

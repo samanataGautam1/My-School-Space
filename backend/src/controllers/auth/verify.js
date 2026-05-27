@@ -399,6 +399,8 @@ router.post("/email", async (req, res) => {
                 where: { email: data.email },
                 update: {
                     userId: newUser.id,
+                    firstName: data.firstName,
+                    lastName: data.lastName,
                     student: {
                         connect: students.map(s => ({ id: s.id }))
                     }
@@ -406,6 +408,8 @@ router.post("/email", async (req, res) => {
                 create: {
                     email: data.email,
                     userId: newUser.id,
+                    firstName: data.firstName,
+                    lastName: data.lastName,
                     schoolId: data.schoolId,
                     student: {
                         connect: students.map(s => ({ id: s.id }))
