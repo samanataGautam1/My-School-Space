@@ -1521,7 +1521,13 @@ router.post('/publish-terminal', async (req, res) => {
 
     // 3. Fetch Data for Grade Sheets
     const students = await prisma.student.findMany({
-      where: { schoolId, isApproved: true },
+      where: {
+        schoolId,
+        OR: [
+          { isApproved: true },
+          { promotionStatus: 'PENDING' }
+        ]
+      },
       include: {
         Renamedclass: true,
         parent: { include: { user: true } },

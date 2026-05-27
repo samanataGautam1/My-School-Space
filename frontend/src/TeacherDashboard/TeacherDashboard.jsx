@@ -114,6 +114,7 @@ export default function TeacherDashboard() {
     const [analyticsRowPage, setAnalyticsRowPage] = useState(1);
     const [reviewRowPage, setReviewRowPage] = useState(1);
     const [analyticsView, setAnalyticsView] = useState('graph');
+    const [promotingStudentId, setPromotingStudentId] = useState(null); // tracks which student is being actioned
 
 
     // Auth checks moved to end of component logic to prevent hook errors
@@ -292,6 +293,45 @@ export default function TeacherDashboard() {
             toast.error("Failed to load students for graph");
         }
     };
+
+    const handlePromoteStudent = async (studentId) => {
+        setPromotingStudentId(studentId);
+        try {
+            const res = await api.post(`/api/teacher/dashboard/students/${studentId}/promote`);
+            if (res.data.ok) {
+                toast.success(res.data.message || 'Student promoted successfully');
+                // Refresh the student list to show updated status
+                if (graphForm.classId) fetchGraphStudents(graphForm.classId);
+            } else {
+                toast.error(res.data.error || 'Failed to promote student');
+            }
+        } catch (error) {
+            console.error('Promote student error:', error);
+            toast.error(error.response?.data?.error || 'Failed to promote student');
+        } finally {
+            setPromotingStudentId(null);
+        }
+    };
+
+    const handleRetainStudent = async (studentId) => {
+        setPromotingStudentId(studentId);
+        try {
+            const res = await api.post(`/api/teacher/dashboard/students/${studentId}/retain`);
+            if (res.data.ok) {
+                toast.success(res.data.message || 'Student retained successfully');
+                // Refresh the student list to show updated status
+                if (graphForm.classId) fetchGraphStudents(graphForm.classId);
+            } else {
+                toast.error(res.data.error || 'Failed to retain student');
+            }
+        } catch (error) {
+            console.error('Retain student error:', error);
+            toast.error(error.response?.data?.error || 'Failed to retain student');
+        } finally {
+            setPromotingStudentId(null);
+        }
+    };
+
 
     const fetchExistingMarks = async () => {
         const { classId, subjectId, examTerminal } = examForm;
@@ -2786,30 +2826,78 @@ export default function TeacherDashboard() {
                                                     <tr className="text-slate-500 border-b border-slate-100 font-medium text-[11px] uppercase tracking-wider">
                                                         <th className="py-4 pl-6 border-b border-slate-100">Roll No</th>
                                                         <th className="py-4 border-b border-slate-100">Student Name</th>
-                                                        <th className="py-4 text-center border-b border-slate-100">Action</th>
+                                                        <th className="py-4 border-b border-slate-100 text-center">Status</th>
+                                                        <th className="py-4 text-center border-b border-slate-100 pr-4">Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-slate-100">
-                                                    {graphStudents.map((student, idx) => (
-                                                        <tr key={student.id} className="group hover:bg-slate-50 transition-colors">
-                                                            <td className="py-4 pl-6 font-medium text-slate-400 text-[11px]">{student.rollNo}</td>
-                                                            <td className="py-4 font-medium text-slate-800 text-[13px] tracking-tight">
-                                                                {student.user.firstName} {student.user.lastName}
-                                                            </td>
-                                                            <td className="py-4 text-center pr-6">
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setSelectedStudentId(student.id);
-                                                                        setShowStudentAnalysis(true);
-                                                                        setShowGraphModal(false);
-                                                                    }}
-                                                                    className="bg-green-950 hover:bg-green-900 text-white text-[10px] font-medium px-4 py-1.5 rounded-lg transition-all shadow-sm active:scale-95"
-                                                                >
-                                                                    Select
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
+                                                    {graphStudents.map((student) => {
+                                                        const isPending = student.promotionStatus === 'PENDING';
+                                                        const isPromoted = student.promotionStatus === 'PROMOTED';
+                                                        const isRetained = student.promotionStatus === 'RETAINED';
+                                                        const isActioning = promotingStudentId === student.id;
+                                                        return (
+                                                            <tr key={student.id} className="group hover:bg-slate-50 transition-colors">
+                                                                <td className="py-4 pl-6 font-medium text-slate-400 text-[11px]">{student.rollNo}</td>
+                                                                <td className="py-4 font-medium text-slate-800 text-[13px] tracking-tight">
+                                                                    {student.user.firstName} {student.user.lastName}
+                                                                </td>
+                                                                <td className="py-4 text-center">
+                                                                    {isPending && (
+                                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-700 border border-amber-200">
+                                                                            ● PENDING
+                                                                        </span>
+                                                                    )}
+                                                                    {isPromoted && (
+                                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                                                            ✓ PROMOTED
+                                                                        </span>
+                                                                    )}
+                                                                    {isRetained && (
+                                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-100 text-blue-700 border border-blue-200">
+                                                                            ↩ RETAINED
+                                                                        </span>
+                                                                    )}
+                                                                    {!isPending && !isPromoted && !isRetained && (
+                                                                        <span className="text-slate-300 text-[9px] font-medium">—</span>
+                                                                    )}
+                                                                </td>
+                                                                <td className="py-4 text-center pr-4">
+                                                                    {isPending ? (
+                                                                        <div className="flex items-center justify-center gap-1.5">
+                                                                            <button
+                                                                                onClick={() => handlePromoteStudent(student.id)}
+                                                                                disabled={isActioning}
+                                                                                className="flex items-center gap-1 bg-green-950 hover:bg-green-900 disabled:opacity-50 text-white text-[9px] font-black uppercase px-2.5 py-1.5 rounded-lg transition-all shadow-sm active:scale-95"
+                                                                            >
+                                                                                {isActioning ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : '▲'}
+                                                                                Promote
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => handleRetainStudent(student.id)}
+                                                                                disabled={isActioning}
+                                                                                className="flex items-center gap-1 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white text-[9px] font-black uppercase px-2.5 py-1.5 rounded-lg transition-all shadow-sm active:scale-95"
+                                                                            >
+                                                                                {isActioning ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : '↩'}
+                                                                                Retain
+                                                                            </button>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setSelectedStudentId(student.id);
+                                                                                setShowStudentAnalysis(true);
+                                                                                setShowGraphModal(false);
+                                                                            }}
+                                                                            className="bg-green-950 hover:bg-green-900 text-white text-[10px] font-medium px-4 py-1.5 rounded-lg transition-all shadow-sm active:scale-95"
+                                                                        >
+                                                                            View Graph
+                                                                        </button>
+                                                                    )}
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
                                                 </tbody>
                                             </table>
                                         ) : (
