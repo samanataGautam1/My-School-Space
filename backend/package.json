@@ -29,6 +29,7 @@
     "mysql2": "^3.22.3",
     "nodemailer": "^8.0.7",
     "prisma": "^6.19.3",
+    "resend": "^6.12.4",
     "uuid": "^14.0.0"
   },
   "devDependencies": {
