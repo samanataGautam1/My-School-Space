@@ -25,16 +25,50 @@ const smtpConfig = {
 async function sendEmail({ to, subject, html, smtpUser, smtpPass }) {
     console.log(`📧 Attempting to send email to ${to}...`);
 
-    // 1. Try Resend if API key is present AND custom SMTP is not fully provided
     const hasCustomSMTP = smtpUser && smtpPass;
+    const user = hasCustomSMTP ? smtpUser : process.env.EMAIL_USER;
+    const pass = hasCustomSMTP ? smtpPass : process.env.EMAIL_PASS;
 
-    if (!hasCustomSMTP && process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 're_123456789') {
+    // 1. Try Nodemailer (SMTP) First - More reliable for universal delivery
+    if (user && pass) {
+        if (hasCustomSMTP) {
+            console.log(`🔄 Using School-Specific SMTP. User: ${user}, Pass: [PROVIDED]`);
+        } else {
+            const maskedPass = pass.substring(0, 3) + "****" + pass.substring(pass.length - 3);
+            console.log(`🔄 Using System-Wide SMTP primary. User: ${user}, Pass: ${maskedPass}`);
+        }
+
+        try {
+            const transporter = nodemailer.createTransport({
+                host: "smtp.gmail.com",
+                port: 587,
+                secure: false,
+                family: 4,
+                auth: { user, pass },
+            });
+
+            const info = await transporter.sendMail({
+                from: `"School Space" <${user}>`,
+                to,
+                subject,
+                html,
+            });
+
+            console.log("✅ Email sent via SMTP:", info.messageId);
+            return info;
+        } catch (smtpErr) {
+            console.error("❌ SMTP attempt failed:", smtpErr.message);
+            // If SMTP fails, we'll try Resend as a fallback below
+        }
+    } else {
+        console.warn("⚠️ No SMTP credentials available. Skipping SMTP.");
+    }
+
+    // 2. Fallback to Resend
+    if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 're_123456789') {
         try {
             const from = process.env.RESEND_FROM_EMAIL || "School Space <onboarding@resend.dev>";
-            if (!process.env.RESEND_FROM_EMAIL) {
-                console.warn("⚠️  RESEND_FROM_EMAIL missing. Using 'onboarding@resend.dev'. Resend will ONLY send to the account owner in this mode.");
-            }
-            console.log("📤 Trying Resend...");
+            console.log("📤 Trying Resend fallback...");
             const { data, error } = await resend.emails.send({ from, to, subject, html });
 
             if (!error) {
@@ -42,55 +76,12 @@ async function sendEmail({ to, subject, html, smtpUser, smtpPass }) {
                 return data;
             }
             console.error("❌ Resend error:", JSON.stringify(error));
-            if (error?.message?.includes("onboarding")) {
-                console.warn("💡 TIP: Verify your domain in Resend or provide SMTP credentials to send to anyone.");
-            }
         } catch (resendErr) {
-            console.error("❌ Resend attempt failed:", resendErr.message);
+            console.error("❌ Resend fallback failed:", resendErr.message);
         }
     }
 
-    // 2. Fallback to Nodemailer (SMTP)
-    const user = hasCustomSMTP ? smtpUser : process.env.EMAIL_USER;
-    const pass = hasCustomSMTP ? smtpPass : process.env.EMAIL_PASS;
-
-    if (hasCustomSMTP) {
-        console.log(`🔄 Using School-Specific SMTP. User: ${user}, Pass: [PROVIDED]`);
-    } else {
-        const maskedPass = pass ? (pass.substring(0, 3) + "****" + pass.substring(pass.length - 3)) : 'NONE';
-        console.log(`🔄 Using System-Wide SMTP fallback. User: ${user || 'None'}, Pass: ${maskedPass}`);
-    }
-
-    try {
-        if (!user || !pass) {
-            console.error("❌ No SMTP credentials available for fallback.");
-            throw new Error("Email delivery configuration missing (No Resend & No SMTP). Please check EMAIL_USER and EMAIL_PASS environment variables.");
-        }
-
-        const transporter = nodemailer.createTransport({
-            host: "smtp.gmail.com",
-            port: 587,
-            secure: false,
-            family: 4,
-            auth: {
-                user,
-                pass,
-            },
-        });
-
-        const info = await transporter.sendMail({
-            from: `"School Space" <${user}>`,
-            to,
-            subject,
-            html,
-        });
-
-        console.log("✅ Email sent via SMTP:", info.messageId);
-        return info;
-    } catch (smtpErr) {
-        console.error("❌ SMTP failed:", smtpErr.message);
-        throw new Error(`Email delivery failed: ${smtpErr.message}`);
-    }
+    throw new Error("Email delivery failed: Both SMTP and Resend systems are unavailable or failed.");
 }
 
 /* ================= EMAIL TYPES ================= */
