@@ -1480,8 +1480,8 @@ export default function AdminDashboard() {
                                             disabled={!checklist?.allPassed}
                                             onClick={() => { setEndSessionConfirmation(''); setShowEndSessionModal(true); }}
                                             className={`w-full py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${checklist?.allPassed
-                                                    ? 'bg-red-950 hover:bg-red-900 text-white active:scale-[0.99] shadow-sm'
-                                                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                                ? 'bg-red-950 hover:bg-red-900 text-white active:scale-[0.99] shadow-sm'
+                                                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                                                 }`}
                                         >
                                             <Lock size={13} />
@@ -1582,10 +1582,10 @@ export default function AdminDashboard() {
                                             {sessionHistory.map((h, i) => (
                                                 <div key={i} className="flex items-center gap-4 px-5 py-3.5 bg-white rounded-xl border border-slate-200 hover:border-slate-300 transition-colors">
                                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-[10px] font-bold ${h.examPublished && h.calculationDone
+                                                        ? 'bg-green-950 text-white'
+                                                        : h.examPublished
                                                             ? 'bg-green-950 text-white'
-                                                            : h.examPublished
-                                                                ? 'bg-green-950 text-white'
-                                                                : 'bg-green-950 text-white'
+                                                            : 'bg-green-950 text-white'
                                                         }`}>
                                                         {h.session.charAt(0)}
                                                     </div>
@@ -1633,8 +1633,8 @@ export default function AdminDashboard() {
                                                             key={s}
                                                             onClick={() => setStartSessionForm(f => ({ ...f, session: s }))}
                                                             className={`py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border ${startSessionForm.session === s
-                                                                    ? 'bg-[#052e16] text-white border-[#052e16] shadow-sm'
-                                                                    : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
+                                                                ? 'bg-[#052e16] text-white border-[#052e16] shadow-sm'
+                                                                : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
                                                                 }`}
                                                         >
                                                             {s.split(' ')[0]}
@@ -1809,7 +1809,7 @@ export default function AdminDashboard() {
                                                         <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                                         Finalizing...
                                                     </div>
-                                                ) : 'End Session & Publish'}
+                                                ) : 'End Session'}
                                             </button>
                                         </div>
                                     </div>
@@ -1843,8 +1843,8 @@ export default function AdminDashboard() {
                                         key={page}
                                         onClick={() => setResultsPage(page)}
                                         className={`flex-1 py-2 px-3 rounded-lg text-[11px] font-semibold transition-all ${resultsPage === page
-                                                ? 'bg-green-950 text-white shadow-sm'
-                                                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                                            ? 'bg-green-950 text-white shadow-sm'
+                                            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
                                             }`}
                                     >
                                         <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold mr-1.5 ${resultsPage === page ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
@@ -2104,8 +2104,8 @@ export default function AdminDashboard() {
                                         key={page}
                                         onClick={() => setPromotionPage(page)}
                                         className={`flex-1 py-2 px-3 rounded-lg text-[11px] font-semibold transition-all ${promotionPage === page
-                                                ? 'bg-green-950 text-white shadow-sm'
-                                                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                                            ? 'bg-green-950 text-white shadow-sm'
+                                            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
                                             }`}
                                     >
                                         <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold mr-1.5 ${promotionPage === page ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
@@ -2983,8 +2983,8 @@ export default function AdminDashboard() {
                                             </td>
                                             <td className="py-3 pl-3 text-center">
                                                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wide ${row.overallStatus === 'PASS' ? 'bg-emerald-100 text-emerald-700' :
-                                                        row.overallStatus === 'FAIL' ? 'bg-red-100 text-red-600' :
-                                                            'bg-slate-100 text-slate-500'
+                                                    row.overallStatus === 'FAIL' ? 'bg-red-100 text-red-600' :
+                                                        'bg-slate-100 text-slate-500'
                                                     }`}>{row.overallStatus}</span>
                                             </td>
                                         </tr>
@@ -3207,8 +3207,8 @@ function SidebarItem({ icon, label, active, onClick, badge }) {
         <button
             onClick={onClick}
             className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-150 text-[11px] font-medium relative group ${active
-                    ? 'bg-white text-[#052e16] shadow-sm font-semibold'
-                    : 'text-white/50 hover:text-white/90 hover:bg-white/8'
+                ? 'bg-white text-[#052e16] shadow-sm font-semibold'
+                : 'text-white/50 hover:text-white/90 hover:bg-white/8'
                 }`}
         >
             <span className={`shrink-0 transition-colors ${active ? 'text-[#052e16]' : 'text-white/40 group-hover:text-white/70'}`}>

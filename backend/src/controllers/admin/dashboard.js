@@ -2399,17 +2399,28 @@ router.post('/end-session', async (req, res) => {
       // ── Bulk Cleanup for all active students (Fresh start for next year) ──
       const allActiveStudents = await prisma.student.findMany({
         where: { schoolId, isApproved: true },
-        select: { id: true, classId: true }
+        select: { id: true }
       });
       const allActiveStudentIds = allActiveStudents.map(s => s.id);
 
       if (allActiveStudentIds.length > 0) {
-        // Delete all submissions, progress, and attendance for this school to clear current session data
+        // 1. Delete all session-specific student data
         await prisma.submission.deleteMany({ where: { studentId: { in: allActiveStudentIds } } });
         await prisma.studentmaterialstatus.deleteMany({ where: { studentId: { in: allActiveStudentIds } } });
         await prisma.quizresponse.deleteMany({ where: { studentId: { in: allActiveStudentIds } } });
         await prisma.attendance.deleteMany({ where: { studentId: { in: allActiveStudentIds } } });
+        await prisma.exammark.deleteMany({ where: { studentId: { in: allActiveStudentIds } } });
+        await prisma.potentialmetric.deleteMany({ where: { studentId: { in: allActiveStudentIds } } });
       }
+
+      // 2. Delete class-level data (Cascades will handle child records like questions/quizsets)
+      await prisma.assignment.deleteMany({ where: { Renamedclass: { schoolId } } });
+      await prisma.studymaterial.deleteMany({ where: { Renamedclass: { schoolId } } });
+
+      // 3. Clear session tracking/publishing records
+      await prisma.schoolexampublish.deleteMany({ where: { schoolId } });
+      await prisma.classexamsubmission.deleteMany({ where: { Renamedclass: { schoolId } } });
+      await prisma.sessioncompletion.deleteMany({ where: { schoolId } });
 
       const processedIds = [];
 
