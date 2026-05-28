@@ -2490,16 +2490,65 @@ router.post('/end-session', async (req, res) => {
       }
     }
 
-    // ── COMPREHENSIVE DATA RESET (Academic Reset) ──
-    // This happens regardless of flags to ensure a fresh start for the new year.
-    // Preserves: School, Teachers, Students (now in new classes), Parents.
-    // Deletes: Exam Marks, Calculations, Submissions, Assignments, Study Materials, Ratings, Messages, Attendance, Potential Metrics.
+    // ── For sessions 1–3: clear session fields + send graph score notifications (NO data deletion) ──
+    // ── For session 4: full academic data reset after promotions/graduation ──
 
     const classIds = classes.map(c => c.id);
 
-    await prisma.$transaction([
-      // Reset School Session Fields
-      prisma.school.update({
+    if (isFourthSessionEnd) {
+      // ── 4th Session: FULL ACADEMIC DATA RESET ──
+      // Preserves: School, Teachers, Students (now in new classes), Parents.
+      // Deletes: Exam Marks, Calculations, Submissions, Assignments, Study Materials, Ratings, Messages, Attendance, Potential Metrics.
+      await prisma.$transaction([
+        // Reset School Session Fields
+        prisma.school.update({
+          where: { id: schoolId },
+          data: {
+            activePerformanceSession: null,
+            activePerformanceYear: null,
+            ratingsEnabled: false,
+            activeRatingSession: null,
+            activeRatingYear: null
+          }
+        }),
+        // Academic Data Deletion
+        prisma.exammark.deleteMany({ where: { student: { schoolId } } }),
+        prisma.classexamsubmission.deleteMany({ where: { Renamedclass: { schoolId } } }),
+        prisma.subjectexamsubmission.deleteMany({ where: { Renamedclass: { schoolId } } }),
+        prisma.schoolexampublish.deleteMany({ where: { schoolId } }),
+        prisma.rating.deleteMany({ where: { teacher: { schoolId } } }),
+        prisma.potentialmetric.deleteMany({ where: { student: { schoolId } } }),
+        prisma.attendance.deleteMany({ where: { classId: { in: classIds } } }),
+        prisma.submission.deleteMany({ where: { student: { schoolId } } }),
+        prisma.assignment.deleteMany({ where: { classId: { in: classIds } } }),
+        prisma.studymaterial.deleteMany({ where: { classId: { in: classIds } } }),
+        prisma.quizset.deleteMany({ where: { studymaterial: { Renamedclass: { schoolId } } } }),
+        prisma.quizresponse.deleteMany({ where: { student: { schoolId } } }),
+        prisma.studentmaterialstatus.deleteMany({ where: { student: { schoolId } } }),
+        prisma.feedback.deleteMany({ where: { student: { schoolId } } }),
+        prisma.feedbackrequest.deleteMany({ where: { student: { schoolId } } }),
+        // Clear all communication (sent/received within school)
+        prisma.message.deleteMany({
+          where: {
+            OR: [
+              { user_message_fromUserIdTouser: { schoolId } },
+              { user_message_toUserIdTouser: { schoolId } }
+            ]
+          }
+        }),
+        // Clear notifications except for promotion/graduation ones
+        prisma.notification.deleteMany({
+          where: {
+            schoolId,
+            NOT: { type: { in: [NT.PROMOTION, NT.GRADUATION] } }
+          }
+        })
+      ]);
+    } else {
+      // ── Sessions 1–3: NO data deletion — just close session and send score notifications ──
+      // Only clear the active session fields; all academic data (marks, assignments, attendance,
+      // ratings, potential metrics) is preserved for continuity across the year.
+      await prisma.school.update({
         where: { id: schoolId },
         data: {
           activePerformanceSession: null,
@@ -2508,43 +2557,116 @@ router.post('/end-session', async (req, res) => {
           activeRatingSession: null,
           activeRatingYear: null
         }
-      }),
-      // Academic Data Deletion
-      prisma.exammark.deleteMany({ where: { student: { schoolId } } }),
-      prisma.classexamsubmission.deleteMany({ where: { Renamedclass: { schoolId } } }),
-      prisma.subjectexamsubmission.deleteMany({ where: { Renamedclass: { schoolId } } }),
-      prisma.schoolexampublish.deleteMany({ where: { schoolId } }),
-      prisma.rating.deleteMany({ where: { teacher: { schoolId } } }),
-      prisma.potentialmetric.deleteMany({ where: { student: { schoolId } } }),
-      prisma.attendance.deleteMany({ where: { classId: { in: classIds } } }),
-      prisma.submission.deleteMany({ where: { student: { schoolId } } }),
-      prisma.assignment.deleteMany({ where: { classId: { in: classIds } } }),
-      prisma.studymaterial.deleteMany({ where: { classId: { in: classIds } } }),
-      prisma.quizset.deleteMany({ where: { studymaterial: { Renamedclass: { schoolId } } } }),
-      prisma.quizresponse.deleteMany({ where: { student: { schoolId } } }),
-      prisma.studentmaterialstatus.deleteMany({ where: { student: { schoolId } } }),
-      prisma.feedback.deleteMany({ where: { student: { schoolId } } }),
-      prisma.feedbackrequest.deleteMany({ where: { student: { schoolId } } }),
-      // Clear all communication (sent/received within school)
-      prisma.message.deleteMany({
-        where: {
-          OR: [
-            { user_message_fromUserIdTouser: { schoolId } },
-            { user_message_toUserIdTouser: { schoolId } }
-          ]
+      });
+
+      // ── Send graph/performance score notifications to parents and teachers ──
+      // Fetch all students with their potential metrics for this session
+      const allStudents = await prisma.student.findMany({
+        where: { schoolId, isApproved: true },
+        include: {
+          potentialmetric: {
+            where: { session: endedSession, sessionYear: endedYear }
+          },
+          parent: { include: { user: { select: { email: true, firstName: true, lastName: true } } } },
+          Renamedclass: { select: { name: true, section: true } }
         }
-      }),
-      // Clear notifications except for the ones we just created for promotion
-      prisma.notification.deleteMany({
-        where: {
-          schoolId,
-          NOT: { type: { in: [NT.PROMOTION, NT.GRADUATION] } }
+      });
+
+      // Notify each parent with their child's session scores
+      for (const student of allStudents) {
+        const metric = student.potentialmetric?.[0];
+        const className = student.Renamedclass ? `${student.Renamedclass.name}${student.Renamedclass.section || ''}` : 'N/A';
+
+        let scoreMsg;
+        if (metric) {
+          const perfScore = metric.performanceTotal != null ? metric.performanceTotal.toFixed(1) : 'N/A';
+          const effortScore = metric.effortTotal != null ? metric.effortTotal.toFixed(1) : 'N/A';
+          const examScore = metric.examScore != null ? metric.examScore.toFixed(1) : 'N/A';
+          const attendScore = metric.attendanceScore != null ? metric.attendanceScore.toFixed(1) : 'N/A';
+          scoreMsg = `📊 ${endedSession} (${endedYear}) Report for ${student.firstName} ${student.lastName} (Class ${className}): Performance: ${perfScore} | Exam: ${examScore} | Attendance: ${attendScore} | Effort: ${effortScore}. Session has ended — admin will start the next session shortly.`;
+        } else {
+          scoreMsg = `📊 ${endedSession} (${endedYear}) has ended for ${student.firstName} ${student.lastName} (Class ${className}). Admin will start the next session shortly.`;
         }
-      })
-    ]);
+
+        if (student.parent && student.parent.length > 0) {
+          await prisma.notification.createMany({
+            data: student.parent.map(p => ({
+              schoolId,
+              parentId: p.id,
+              studentId: student.id,
+              message: scoreMsg,
+              type: NT.SESSION_ADVANCE
+            }))
+          });
+        }
+      }
+
+      // Notify all teachers about session end and their class score summaries
+      const activeTeachers = await prisma.teacher.findMany({
+        where: { schoolId, status: 'ACTIVE' },
+        include: {
+          Renamedclass_classteachers: { select: { name: true, section: true, id: true } },
+          Renamedclass_Renamedclass_classHeadIdToteacher: { select: { name: true, section: true, id: true } }
+        }
+      });
+
+      for (const teacher of activeTeachers) {
+        // Collect all class IDs this teacher is responsible for
+        const headClass = teacher.Renamedclass_Renamedclass_classHeadIdToteacher;
+        const teacherClassIds = new Set();
+        teacher.Renamedclass_classteachers.forEach(c => teacherClassIds.add(c.id));
+        if (headClass) teacherClassIds.add(headClass.id);
+
+        let teacherMsg;
+        if (teacherClassIds.size > 0) {
+          // Count students with completed metrics in their classes
+          const studentsInClasses = await prisma.student.count({
+            where: { classId: { in: Array.from(teacherClassIds) }, schoolId, isApproved: true }
+          });
+          const metricsCompleted = await prisma.potentialmetric.count({
+            where: {
+              student: { classId: { in: Array.from(teacherClassIds) }, schoolId },
+              session: endedSession,
+              sessionYear: endedYear,
+              status: 'COMPLETED'
+            }
+          });
+          teacherMsg = `📊 ${endedSession} (${endedYear}) has ended. Your class(es) have ${studentsInClasses} students — ${metricsCompleted} analytics records finalized. Session scores have been sent to parents. Admin will advance to the next session.`;
+        } else {
+          teacherMsg = `📊 ${endedSession} (${endedYear}) has ended. Session scores have been sent to parents. Admin will advance to the next session.`;
+        }
+
+        await prisma.notification.create({
+          data: {
+            schoolId,
+            teacherId: teacher.id,
+            message: teacherMsg,
+            type: NT.SESSION_ADVANCE
+          }
+        });
+      }
+
+      // Notify students about session end
+      const allApprovedStudents = await prisma.student.findMany({
+        where: { schoolId, isApproved: true },
+        select: { id: true }
+      });
+      if (allApprovedStudents.length > 0) {
+        await prisma.notification.createMany({
+          data: allApprovedStudents.map(s => ({
+            schoolId,
+            studentId: s.id,
+            message: `📚 ${endedSession} (${endedYear}) has officially ended. Your session scores have been shared with your parents. The next session will begin soon.`,
+            type: NT.SESSION_ADVANCE
+          }))
+        });
+      }
+    }
 
     // Build the success message
-    let endNotifMessage = `Current year session (${endedYear}) completed successfully and welcome to next year!`;
+    let endNotifMessage = isFourthSessionEnd
+      ? `4th Session (${endedYear}) completed successfully. Academic data reset complete — welcome to the new year!`
+      : `${endedSession} (${endedYear}) ended successfully. Session scores sent to parents and teachers. Admin can now advance to the next session.`;
 
     await prisma.notification.create({
       data: {
@@ -2561,7 +2683,7 @@ router.post('/end-session', async (req, res) => {
       endedSession,
       endedYear,
       isFourthSessionEnd,
-      newYearReady: true
+      newYearReady: isFourthSessionEnd
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to end session' });
