@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import AuthLayout from "./AuthLayout";
 import { Eye, EyeOff, User, Lock } from "lucide-react";
@@ -127,9 +127,17 @@ export default function Login() {
 
         {/* Password */}
         <div>
-          <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">
-            Password
-          </label>
+          <div className="flex justify-between items-center mb-1.5">
+            <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+              Password
+            </label>
+            <Link
+              to="/forgot-password"
+              className="text-xs font-semibold text-[#052e16] hover:underline transition-colors"
+            >
+              Forgot Password?
+            </Link>
+          </div>
           <div className="relative">
             <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
               <Lock size={15} />
