@@ -2,7 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const prisma = require("../../../prisma/prisma");
-const { sendResetEmail, sendAdminNotification } = require('../../services/mailer');
+const { sendResetEmail, sendAdminNotification, sendStudentResetToParentEmail } = require('../../services/mailer');
 const { authMiddleware, allowRoles } = require('../../middleware/auth');
 const { validatePassword } = require('../../utils/validators');
 
@@ -29,6 +29,72 @@ router.post('/request', async (req, res) => {
       return res.status(404).json({
         error: 'No account found with this username/email and school code combination'
       });
+    }
+
+    if (user.role === 'STUDENT') {
+      const studentUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        include: {
+          student: {
+            include: {
+              parent: true
+            }
+          }
+        }
+      });
+
+      const parents = studentUser?.student?.parent || [];
+      const parentEmails = parents.map(p => p.email).filter(Boolean);
+
+      if (parentEmails.length > 0) {
+        const code = crypto.randomInt(100000, 999999).toString();
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+        await prisma.passwordResetRequest.create({
+          data: {
+            userId: user.id,
+            code: code,
+            status: 'ACCEPTED',
+            expiresAt: expiresAt
+          }
+        });
+
+        let emailsSentCount = 0;
+        for (const parent of parents) {
+          if (parent.email) {
+            try {
+              await sendStudentResetToParentEmail(
+                parent.email,
+                code,
+                `${user.firstName} ${user.lastName}`,
+                `${parent.firstName} ${parent.lastName}`,
+                {
+                  smtpUser: user.school?.email,
+                  smtpPass: user.school?.emailPass
+                }
+              );
+              emailsSentCount++;
+            } catch (emailErr) {
+              console.error(`Failed to send student reset email to parent ${parent.email}:`, emailErr);
+            }
+          }
+        }
+
+        const isDev = process.env.NODE_ENV !== 'production';
+        const response = {
+          ok: true,
+          message: emailsSentCount > 0
+            ? `Verification code has been sent to your parent's email. Please obtain the code from your parent.`
+            : 'Reset code generated. Please use the code below.',
+          requiresApproval: false
+        };
+
+        if (isDev) {
+          response.devCode = code;
+        }
+
+        return res.json(response);
+      }
     }
 
     const code = crypto.randomInt(100000, 999999).toString();

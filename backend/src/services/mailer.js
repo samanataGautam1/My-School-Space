@@ -134,6 +134,22 @@ async function sendResetEmail(to, code, name, config = {}) {
     });
 }
 
+async function sendStudentResetToParentEmail(to, code, studentName, parentName, config = {}) {
+    return sendEmail({
+        to,
+        subject: "Password Reset Code for Your Child",
+        html: `
+            <h2>Hello ${parentName}</h2>
+            <p>A password reset has been requested for your child, <strong>${studentName}</strong>.</p>
+            <p>Their password reset code is:</p>
+            <h1 style="color:red; letter-spacing:5px">${code}</h1>
+            <p>Use this code in the password reset form to update their password. This code expires in 15 minutes.</p>
+        `,
+        smtpUser: config.smtpUser,
+        smtpPass: config.smtpPass
+    });
+}
+
 async function sendWelcomeEmail(to, name, schoolId, config = {}) {
     return sendEmail({
         to,
@@ -248,4 +264,5 @@ module.exports = {
     sendSWOTReportEmail,
     sendTeacherComplaintEmail,
     sendFinalSessionReportEmail,
+    sendStudentResetToParentEmail,
 };
