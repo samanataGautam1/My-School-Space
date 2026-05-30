@@ -32,157 +32,133 @@ router.post('/request', async (req, res) => {
     }
 
     if (user.role === 'STUDENT') {
+      const { parentEmail } = req.body;
+      if (!parentEmail) {
+        return res.status(400).json({ error: "Parent's email is required for student password recovery." });
+      }
+
       const studentUser = await prisma.user.findUnique({
         where: { id: user.id },
         include: {
           student: {
             include: {
-              parent: true
+              parent: {
+                where: { email: parentEmail.trim() }
+              }
             }
           }
         }
       });
 
-      const parents = studentUser?.student?.parent || [];
-      const parentEmails = parents.map(p => p.email).filter(Boolean);
-
-      if (parentEmails.length > 0) {
-        const code = crypto.randomInt(100000, 999999).toString();
-        const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-
-        await prisma.passwordResetRequest.create({
-          data: {
-            userId: user.id,
-            code: code,
-            status: 'ACCEPTED',
-            expiresAt: expiresAt
-          }
-        });
-
-        let emailsSentCount = 0;
-        for (const parent of parents) {
-          if (parent.email) {
-            try {
-              await sendStudentResetToParentEmail(
-                parent.email,
-                code,
-                `${user.firstName} ${user.lastName}`,
-                `${parent.firstName} ${parent.lastName}`,
-                {
-                  smtpUser: user.school?.email,
-                  smtpPass: user.school?.emailPass
-                }
-              );
-              emailsSentCount++;
-            } catch (emailErr) {
-              console.error(`Failed to send student reset email to parent ${parent.email}:`, emailErr);
-            }
-          }
-        }
-
-        const isDev = process.env.NODE_ENV !== 'production';
-        const response = {
-          ok: true,
-          message: emailsSentCount > 0
-            ? `Verification code has been sent to your parent's email. Please obtain the code from your parent.`
-            : 'Reset code generated. Please use the code below.',
-          requiresApproval: false
-        };
-
-        if (isDev) {
-          response.devCode = code;
-        }
-
-        return res.json(response);
+      const matchedParents = studentUser?.student?.parent || [];
+      if (matchedParents.length === 0) {
+        return res.status(400).json({ error: "Parent's email does not match any registered parent for this student." });
       }
+
+      const parent = matchedParents[0];
+      const code = crypto.randomInt(100000, 999999).toString();
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+      await prisma.passwordResetRequest.create({
+        data: {
+          userId: user.id,
+          code: code,
+          status: 'ACCEPTED',
+          expiresAt: expiresAt
+        }
+      });
+
+      let emailSent = false;
+      try {
+        await sendStudentResetToParentEmail(
+          parent.email,
+          code,
+          `${user.firstName} ${user.lastName}`,
+          `${parent.firstName} ${parent.lastName}`,
+          {
+            smtpUser: user.school?.email,
+            smtpPass: user.school?.emailPass
+          }
+        );
+        emailSent = true;
+      } catch (emailErr) {
+        console.error(`Failed to send student reset email to parent ${parent.email}:`, emailErr);
+      }
+
+      const response = {
+        ok: true,
+        message: emailSent
+          ? `Verification code has been sent to your parent's email (${parent.email}). Please enter it below.`
+          : 'Reset code generated. Please check your parent\'s email or use the code below.',
+        requiresApproval: false
+      };
+
+      if (process.env.NODE_ENV !== 'production') {
+        response.devCode = code;
+      }
+
+      return res.json(response);
+    }
+
+    // For non-students (ADMIN, TEACHER, PARENT)
+    let targetEmail = user.email;
+    if (!targetEmail) {
+      if (user.role === 'TEACHER') {
+        const teacher = await prisma.teacher.findUnique({ where: { userId: user.id } });
+        targetEmail = teacher?.email;
+      } else if (user.role === 'PARENT') {
+        const parent = await prisma.parent.findUnique({ where: { userId: user.id } });
+        targetEmail = parent?.email;
+      }
+    }
+
+    if (!targetEmail) {
+      return res.status(400).json({ error: 'Your account does not have a registered email. Please contact support.' });
     }
 
     const code = crypto.randomInt(100000, 999999).toString();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
     if (user.role === 'ADMIN') {
-      if (!user.email) {
-        return res.status(400).json({
-          error: 'Admin email not set. Please contact support.'
-        });
-      }
-
       await prisma.user.update({
         where: { id: user.id },
         data: { recoveryCode: code }
       });
-
-      let emailSent = false;
-      try {
-        await sendResetEmail(user.email, code, user.firstName, {
-          smtpUser: user.school?.email,
-          smtpPass: user.school?.emailPass
-        });
-        emailSent = true;
-      } catch (emailErr) {
-        // Email failed but code is saved — user can still reset
-      }
-
-      const response = {
-        ok: true,
-        message: emailSent
-          ? 'Verification code sent to your email. Code expires in 15 minutes.'
-          : 'Reset code generated. Check your email or use the code below.',
-        requiresApproval: false
-      };
-
-      // In development, include the code so testing works without SMTP
-      if (process.env.NODE_ENV !== 'production') {
-        response.devCode = code;
-      }
-
-      return res.json(response);
     } else {
-      // Create a request for admin approval
-      // In dev mode, auto-approve so testing works without admin intervention
-      const isDev = process.env.NODE_ENV !== 'production';
-
       await prisma.passwordResetRequest.create({
         data: {
           userId: user.id,
           code: code,
-          status: isDev ? 'ACCEPTED' : 'PENDING',
+          status: 'ACCEPTED',
           expiresAt: expiresAt
         }
       });
-
-      // Try to notify admin (don't crash if email fails)
-      try {
-        const admin = await prisma.user.findFirst({
-          where: { role: 'ADMIN', schoolId: user.schoolId }
-        });
-        if (admin && admin.email) {
-          await sendAdminNotification(
-            admin.email,
-            `${user.firstName} ${user.lastName}`,
-            user.role,
-            'password reset',
-            { smtpUser: user.school?.email, smtpPass: user.school?.emailPass }
-          );
-        }
-      } catch {
-        // Email notification failed — not critical
-      }
-
-      const response = {
-        ok: true,
-        message: isDev
-          ? 'Reset code generated. Enter the code below to set your new password.'
-          : 'Password reset request sent to your school administrator for approval.',
-        requiresApproval: !isDev
-      };
-
-      if (isDev) {
-        response.devCode = code;
-      }
-
-      return res.json(response);
     }
+
+    let emailSent = false;
+    try {
+      await sendResetEmail(targetEmail, code, user.firstName, {
+        smtpUser: user.school?.email,
+        smtpPass: user.school?.emailPass
+      });
+      emailSent = true;
+    } catch (emailErr) {
+      console.error(`Failed to send reset email to ${targetEmail}:`, emailErr);
+    }
+
+    const response = {
+      ok: true,
+      message: emailSent
+        ? `Verification code has been sent to your email (${targetEmail}). Code expires in 15 minutes.`
+        : 'Reset code generated. Check your email or use the code below.',
+      requiresApproval: false
+    };
+
+    if (process.env.NODE_ENV !== 'production') {
+      response.devCode = code;
+    }
+
+    return res.json(response);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to process password reset request. Please try again.' });

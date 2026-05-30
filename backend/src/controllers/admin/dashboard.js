@@ -10,7 +10,7 @@ const NT = require('../../utils/notificationTypes');
 
 const router = express.Router();
 
-// NOTE: one-time data seeding was here, moved to a migration script.
+
 
 /* ================= ALL ROUTES PROTECTED ================= */
 router.use(authMiddleware, allowRoles('ADMIN'));

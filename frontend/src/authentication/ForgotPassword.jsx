@@ -13,6 +13,7 @@ export default function ForgotPassword() {
 
     const [formData, setFormData] = useState({
         usernameOrEmail: "",
+        parentEmail: "",
         schoolCode: "",
         code: "",
         newPassword: "",
@@ -36,7 +37,8 @@ export default function ForgotPassword() {
         try {
             const res = await passwordService.requestReset({
                 usernameOrEmail: formData.usernameOrEmail.trim(),
-                schoolCode: formData.schoolCode.trim().toUpperCase()
+                schoolCode: formData.schoolCode.trim().toUpperCase(),
+                parentEmail: formData.parentEmail.trim()
             });
             if (res.ok) {
                 toast.success(res.message);
@@ -121,6 +123,19 @@ export default function ForgotPassword() {
                         />
                     </div>
                     <div>
+                        <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider flex justify-between">
+                            <span>Parent's Email</span>
+                            <span className="text-[10px] text-slate-400 font-normal normal-case italic">Only for students</span>
+                        </label>
+                        <input
+                            type="email"
+                            className="w-full h-11 px-4 rounded-xl bg-white border border-slate-200 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#052e16] focus:border-transparent transition-all placeholder:text-slate-400"
+                            placeholder="Enter parent's email"
+                            value={formData.parentEmail}
+                            onChange={(e) => setFormData({ ...formData, parentEmail: e.target.value })}
+                        />
+                    </div>
+                    <div>
                         <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wider">School Code</label>
                         <input
                             type="text"
@@ -145,8 +160,8 @@ export default function ForgotPassword() {
             {step === 2 && (
                 <form onSubmit={handleReset} className="space-y-4">
                     <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] text-slate-600 leading-relaxed">
-                        {requiresApproval ? (
-                            <p>Your reset request has been sent to your school administrator. Once approved, enter the code provided by your admin below.</p>
+                        {formData.parentEmail ? (
+                            <p>A 6-digit verification code has been sent to your parent's email: <strong>{formData.parentEmail}</strong>. It expires in 15 minutes.</p>
                         ) : (
                             <p>A 6-digit verification code has been sent to your email. It expires in 15 minutes.</p>
                         )}
