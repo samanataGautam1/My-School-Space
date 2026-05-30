@@ -20,9 +20,9 @@ router.post('/request', async (req, res) => {
     const user = await prisma.user.findFirst({
       where: {
         OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
-        school: { code: schoolCode.trim().toUpperCase() }
+        school_user_schoolIdToschool: { code: schoolCode.trim().toUpperCase() }
       },
-      include: { school: { select: { id: true, name: true, code: true, email: true, emailPass: true } } }
+      include: { school_user_schoolIdToschool: { select: { id: true, name: true, code: true, email: true, emailPass: true } } }
     });
 
     if (!user) {
@@ -76,8 +76,8 @@ router.post('/request', async (req, res) => {
           `${user.firstName} ${user.lastName}`,
           `${parent.firstName} ${parent.lastName}`,
           {
-            smtpUser: user.school?.email,
-            smtpPass: user.school?.emailPass
+            smtpUser: user.school_user_schoolIdToschool?.email,
+            smtpPass: user.school_user_schoolIdToschool?.emailPass
           }
         );
         emailSent = true;
@@ -138,8 +138,8 @@ router.post('/request', async (req, res) => {
     let emailSent = false;
     try {
       await sendResetEmail(targetEmail, code, user.firstName, {
-        smtpUser: user.school?.email,
-        smtpPass: user.school?.emailPass
+        smtpUser: user.school_user_schoolIdToschool?.email,
+        smtpPass: user.school_user_schoolIdToschool?.emailPass
       });
       emailSent = true;
     } catch (emailErr) {
@@ -183,7 +183,7 @@ router.post('/reset', async (req, res) => {
     const user = await prisma.user.findFirst({
       where: {
         OR: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
-        school: { code: schoolCode.trim().toUpperCase() }
+        school_user_schoolIdToschool: { code: schoolCode.trim().toUpperCase() }
       }
     });
 
